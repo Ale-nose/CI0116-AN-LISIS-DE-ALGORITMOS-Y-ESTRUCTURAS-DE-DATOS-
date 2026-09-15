@@ -1,4 +1,4 @@
-#include "ticks.hpp"
+#include "Ticks.hpp"
 
 Ticks::Ticks(std::uint32_t seed) : rng_(seed) {}
 

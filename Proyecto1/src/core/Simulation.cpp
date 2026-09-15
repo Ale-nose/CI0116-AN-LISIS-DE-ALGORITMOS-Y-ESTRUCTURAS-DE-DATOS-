@@ -1,4 +1,4 @@
-#include "simulation.hpp"
+#include "Simulation.hpp"
 
 Simulation::Simulation(std::uint32_t seed, const Config& config)
   : config_(config), ticks_engine_(seed) {

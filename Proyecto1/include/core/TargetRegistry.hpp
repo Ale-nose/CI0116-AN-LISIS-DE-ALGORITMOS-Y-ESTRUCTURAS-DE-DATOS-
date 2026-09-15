@@ -4,15 +4,9 @@
 // category so the log (Topic 6) can report them broken down
 // by operation type, not just a single total.
 #pragma once
+
 #include <cstddef>
-
-//
-// TODO: Person B (Ashley) defines EnemyId and Key for real by generic
-// parametrization by key type: id / distance / life). Placeholder
-// typedefs below let this header compile on its own until then.
-typedef int EnemyId;
-
-typedef int Key;
+#include "KeyType.hpp"
 
 // Per-operation step counter, shared by every concrete registry.
 // total() is what gets returned by each interface method; the four

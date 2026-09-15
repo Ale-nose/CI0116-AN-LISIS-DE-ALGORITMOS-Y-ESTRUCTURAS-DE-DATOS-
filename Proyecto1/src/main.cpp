@@ -1,5 +1,5 @@
 #include <cstdio>
-#include "ticks.hpp"
+#include "Ticks.hpp"
 
 int main() {
 
