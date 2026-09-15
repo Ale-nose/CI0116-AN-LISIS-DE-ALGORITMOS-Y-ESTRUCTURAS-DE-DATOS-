@@ -3,8 +3,8 @@
 
 #include <array>
 
-const int GRID_WIDTH = 20;
-const int GRID_HEIGHT = 12;
+constexpr int GRID_WIDTH = 20;
+constexpr int GRID_HEIGHT = 12;
 
 // Possible contents of a single map cell.
 enum class CellType {
