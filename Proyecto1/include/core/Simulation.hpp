@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "ticks.hpp"
+#include "Ticks.hpp"
 
 /**
  * @brief Configuration parameters needed to initialize Simulation
