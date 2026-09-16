@@ -1,111 +1,59 @@
 // Copyright 2026 Kevin Velásquez García
 #pragma once
 
-#include <optional>
-#include <utility>
+#include "TargetRegistry.hpp"
 
 /**
  * @brief Target registry backed by an unsorted singly linked list.
  *
- * Insertion is O(1) at the front; search and removal are O(n).
- *
- * @tparam KeyType   Type used to look up entries (the enemy id).
- * @tparam ValueType Type stored alongside each key.
+ * Insertion is O(1) at the front. Its cheap native query is "peek the
+ * head" (the most recently inserted enemy), also O(1).
  */
-template <typename KeyType, typename ValueType>
-class LinkedListRegistry {
+class LinkedListRegistry : public ITargetRegistry {
  private:
   /// @brief A single list element.
   struct Node {
-    KeyType key;      ///< Lookup key.
-    ValueType value;  ///< Stored value.
-    Node* next;       ///< Next node, or nullptr at the tail.
+    EnemyId id;   ///< Enemy identifier.
+    Key key;      ///< Ordering key (== id in this project).
+    Node* next;   ///< Next node, or nullptr at the tail.
   };
-
-  Node* head;  ///< First node, or nullptr if empty.
-  int count;   ///< Number of stored entries.
+  
+  Node* head;         ///< First node, or nullptr if empty.
+  size_t count;       ///< Number of stored entries.
 
  public:
   /// @brief Creates an empty registry.
-  LinkedListRegistry() : head(nullptr), count(0) {}
+  LinkedListRegistry();
 
   // Raw pointers are owned here; copying would double-free them.
   LinkedListRegistry(const LinkedListRegistry&) = delete;
   LinkedListRegistry& operator=(const LinkedListRegistry&) = delete;
 
   /// @brief Frees every node.
-  ~LinkedListRegistry() {
-    Node* current = head;
-    while (current != nullptr) {
-      Node* next = current->next;
-      delete current;
-      current = next;
-    }
-  }
+  ~LinkedListRegistry() override;
 
   /**
    * @brief Inserts a key/value pair at the front of the list.
-   * @param key   Lookup key.
-   * @param value Value to store.
+   * @param id Enemy identifier.
+   * @param k  Key this list orders by (same value as id, per spec).
    * @return Steps spent (always 1).
    */
-  inline int insert(const KeyType& key, const ValueType& value) {
-    Node* node = new Node{key, value, head};
-    head = node;
-    ++count;
-    return 1;
-  }
+  int insert(EnemyId id, Key k) override;
 
   /**
-   * @brief Removes the entry with the given key, if present.
-   * @param key Key to remove.
+   * @brief Removes the entry with the given id, if present.
+   * @param id Enemy identifier to remove.
    * @return Steps spent walking the list.
    */
-  inline int erase(const KeyType& key) {
-    int steps = 0;
-    Node* previous = nullptr;
-    Node* current = head;
-
-    while (current != nullptr) {
-      ++steps;
-      if (current->key == key) {
-        if (previous == nullptr) {
-          head = current->next;
-        } else {
-          previous->next = current->next;
-        }
-        ++steps;
-        delete current;
-        --count;
-        return steps;
-      }
-      previous = current;
-      current = current->next;
-    }
-    return steps;
-  }
+  int erase(EnemyId id) override;
 
   /**
-   * @brief Looks up the value stored under a key.
-   * @param key Key to search for.
-   * @return The value (if found) and the steps spent searching.
+   * @brief Answers the cheap native question: peek the head.
+   * @param out Set to the head's id, if the list is non-empty.
+   * @return Steps spent (0 if empty, 1 otherwise).
    */
-  inline std::pair<std::optional<ValueType>, int> query(
-    const KeyType& key) const {
-    int steps = 0;
-    Node* current = head;
-    while (current != nullptr) {
-      ++steps;
-      if (current->key == key) {
-        return {current->value, steps};
-      }
-      current = current->next;
-    }
-    return {std::nullopt, steps};
-  }
+  int query(EnemyId& out) const override;
 
   /// @brief Number of stored entries. Costs 0 steps.
-  inline int size() const {
-    return count;
-  }
+  size_t size() const override;
 };

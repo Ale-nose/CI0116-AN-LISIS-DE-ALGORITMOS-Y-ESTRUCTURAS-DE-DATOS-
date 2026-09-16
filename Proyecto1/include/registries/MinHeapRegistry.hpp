@@ -1,149 +1,73 @@
 // Copyright 2026 Kevin Velásquez García
 #pragma once
 
-#include <optional>
-#include <utility>
 #include <vector>
+
+#include "TargetRegistry.hpp"
 
 /**
  * @brief Target registry backed by a binary min-heap.
  *
- * The minimum-key element is always at the root, but there is no
- * order guarantee beyond that: searching for an arbitrary key is O(n).
- *
- * @tparam KeyType   Type used to look up entries (the enemy id).
- * @tparam ValueType Type stored alongside each key.
+ * The minimum-key element is always at the root. Its cheap native
+ * query is "peek the root" — the true minimum, O(1).
  */
-template <typename KeyType, typename ValueType>
-class MinHeapRegistry {
+class MinHeapRegistry : public ITargetRegistry {
  private:
   /// @brief A single heap slot.
   struct Entry {
-    KeyType key;      ///< Lookup key.
-    ValueType value;  ///< Stored value.
+    EnemyId id;  ///< Enemy identifier.
+    Key key;     ///< Ordering key (== id in this project).
   };
-
+  
+  /**
+   * @brief Moves data_[index] up while it's smaller than its parent.
+   * @param index Starting index.
+   * @param steps Accumulator, one step per comparison.
+   * @return The index where the element finally landed.
+   */
+  int siftUp(int index, int& steps);
+  
+  /**
+   * @brief Moves data_[index] down while it's bigger than a child.
+   * @param index Starting index.
+   * @param steps Accumulator, one step per comparison.
+   * @return The index where the element finally landed.
+   */
+  int siftDown(int index, int& steps);
+  
   std::vector<Entry> data;  ///< Backing array, kept in heap order.
   int count;                ///< Number of stored entries.
 
-  /**
-   * @brief Moves data[index] up while it's smaller than its parent.
-   * @param index Starting index.
-   * @param steps Accumulator, one step per comparison.
-   * @return The index where the element finally landed.
-   */
-  inline int siftUp(int index, int& steps) {
-    while (index > 0) {
-      int parent = (index - 1) / 2;
-      ++steps;
-      if (data[parent].key <= data[index].key) break;
-      std::swap(data[parent], data[index]);
-      index = parent;
-    }
-    return index;
-  }
-
-  /**
-   * @brief Moves data[index] down while it's bigger than a child.
-   * @param index Starting index.
-   * @param steps Accumulator, one step per comparison.
-   * @return The index where the element finally landed.
-   */
-  inline int siftDown(int index, int& steps) {
-    while (true) {
-      int left = 2 * index + 1;
-      int right = 2 * index + 2;
-      int smallest = index;
-
-      if (left < count) {
-        ++steps;
-        if (data[left].key < data[smallest].key) smallest = left;
-      }
-      if (right < count) {
-        ++steps;
-        if (data[right].key < data[smallest].key) smallest = right;
-      }
-      if (smallest == index) break;
-      std::swap(data[index], data[smallest]);
-      index = smallest;
-    }
-    return index;
-  }
-
  public:
   /// @brief Creates an empty registry.
-  MinHeapRegistry() : count(0) {}
+  MinHeapRegistry();
 
   /**
    * @brief Inserts a key/value pair and restores the heap property.
-   * @param key   Lookup key.
-   * @param value Value to store.
+   * @param id Enemy identifier.
+   * @param k  Key this heap orders by (same value as id, per spec).
    * @return Steps spent sifting the new entry up.
    */
-  inline int insert(const KeyType& key, const ValueType& value) {
-    data.push_back(Entry{key, value});
-    ++count;
-    int steps = 1;  // the append itself
-    siftUp(count - 1, steps);
-    return steps;
-  }
+  int insert(EnemyId id, Key k) override;
 
   /**
-   * @brief Removes the entry with the given key, if present.
+   * @brief Removes the entry with the given id, if present.
    *
    * Requires a linear search first, since the heap has no order
    * besides "the root is the minimum".
    *
-   * @param key Key to remove.
+   * @param id Enemy identifier to remove.
    * @return Steps spent searching plus restoring the heap property.
    */
-  inline int erase(const KeyType& key) {
-    int steps = 0;
-    int index = -1;
-    for (int i = 0; i < count; ++i) {
-      ++steps;
-      if (data[i].key == key) {
-        index = i;
-        break;
-      }
-    }
-    if (index == -1) {
-      return steps;
-    }
-
-    data[index] = data[count - 1];
-    data.pop_back();
-    --count;
-    ++steps;  // move the last element into the hole
-
-    if (index < count) {
-      int afterUp = siftUp(index, steps);
-      if (afterUp == index) {
-        siftDown(index, steps);
-      }
-    }
-    return steps;
-  }
+  int erase(EnemyId id) override;
 
   /**
-   * @brief Looks up the value stored under a key (linear search).
-   * @param key Key to search for.
-   * @return The value (if found) and the steps spent searching.
+   * @brief Answers the cheap native question: peek the root.
+   * @param out Set to the minimum id, if the heap is non-empty.
+   * @return Steps spent (0 if empty, 1 otherwise).
    */
-  inline std::pair<std::optional<ValueType>, int> query(
-    const KeyType& key) const {
-    int steps = 0;
-    for (int i = 0; i < count; ++i) {
-      ++steps;
-      if (data[i].key == key) {
-        return {data[i].value, steps};
-      }
-    }
-    return {std::nullopt, steps};
-  }
+  int query(EnemyId& out) const override;
 
   /// @brief Number of stored entries. Costs 0 steps.
-  inline int size() const {
-    return count;
-  }
+  size_t size() const override;
 };
