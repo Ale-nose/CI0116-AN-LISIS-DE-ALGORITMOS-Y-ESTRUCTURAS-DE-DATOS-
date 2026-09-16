@@ -1,134 +1,63 @@
 // Copyright 2026 Kevin Velásquez García
 #pragma once
 
-#include <optional>
-#include <utility>
+#include "TargetRegistry.hpp"
 
 /**
  * @brief Target registry backed by a sorted singly linked list.
  *
- * Every operation walks the list, but stops as soon as it passes the
- * point where the key would be (early exit), instead of always
- * scanning to the end like LinkedListRegistry.
- *
- * @tparam KeyType   Type used to look up entries (the enemy id).
- * @tparam ValueType Type stored alongside each key.
+ * Kept sorted ascending by key, with early exit on search. Its cheap
+ * native query is "peek the head", which is also the minimum key, O(1).
  */
-template <typename KeyType, typename ValueType>
-class SortedLinkedListRegistry {
+class SortedListRegistry : public ITargetRegistry {
  private:
   /// @brief A single list element.
   struct Node {
-    KeyType key;      ///< Lookup key.
-    ValueType value;  ///< Stored value.
-    Node* next;       ///< Next node, or nullptr at the tail.
+    EnemyId id;   ///< Enemy identifier.
+    Key key;      ///< Ordering key (== id in this project).
+    Node* next;   ///< Next node, or nullptr at the tail.
   };
-
-  Node* head;  ///< First (smallest-key) node, or nullptr if empty.
-  int count;   ///< Number of stored entries.
+ 
+  Node* head;         ///< First (smallest-key) node, or nullptr if empty.
+  size_t count;       ///< Number of stored entries.
 
  public:
   /// @brief Creates an empty registry.
-  SortedLinkedListRegistry() : head(nullptr), count(0) {}
+  SortedListRegistry();
 
   // Raw pointers are owned here; copying would double-free them.
-  SortedLinkedListRegistry(const SortedLinkedListRegistry&) = delete;
-  SortedLinkedListRegistry& operator=(const SortedLinkedListRegistry&) = delete;
+  SortedListRegistry(const SortedListRegistry&) = delete;
+  SortedListRegistry& operator=(const SortedListRegistry&) = delete;
 
   /// @brief Frees every node.
-  ~SortedLinkedListRegistry() {
-    Node* current = head;
-    while (current != nullptr) {
-      Node* next = current->next;
-      delete current;
-      current = next;
-    }
-  }
+  ~SortedListRegistry() override;
 
   /**
    * @brief Inserts a key/value pair, keeping the list sorted by key.
-   * @param key   Lookup key.
-   * @param value Value to store.
+   * @param id Enemy identifier.
+   * @param k  Key this list orders by (same value as id, per spec).
    * @return Steps spent finding the insertion point.
    */
-  inline int insert(const KeyType& key, const ValueType& value) {
-    int steps = 0;
-    Node* previous = nullptr;
-    Node* current = head;
-
-    while (current != nullptr && current->key < key) {
-      ++steps;
-      previous = current;
-      current = current->next;
-    }
-
-    Node* node = new Node{key, value, current};
-    if (previous == nullptr) {
-      head = node;
-    } else {
-      previous->next = node;
-    }
-    ++steps;
-    ++count;
-    return steps;
-  }
+  int insert(EnemyId id, Key k) override;
 
   /**
-   * @brief Removes the entry with the given key, if present.
+   * @brief Removes the entry with the given id, if present.
    *
-   * Stops walking as soon as a key greater than the target is seen.
+   * Stops walking as soon as a key greater than id is seen.
    *
-   * @param key Key to remove.
+   * @param id Enemy identifier to remove.
    * @return Steps spent searching (and unlinking, if found).
    */
-  inline int erase(const KeyType& key) {
-    int steps = 0;
-    Node* previous = nullptr;
-    Node* current = head;
-
-    while (current != nullptr && !(current->key > key)) {
-      ++steps;
-      if (current->key == key) {
-        if (previous == nullptr) {
-          head = current->next;
-        } else {
-          previous->next = current->next;
-        }
-        ++steps;
-        delete current;
-        --count;
-        return steps;
-      }
-      previous = current;
-      current = current->next;
-    }
-    return steps;
-  }
+  int erase(EnemyId id) override;
 
   /**
-   * @brief Looks up the value stored under a key.
-   *
-   * Stops walking as soon as a key greater than the target is seen.
-   *
-   * @param key Key to search for.
-   * @return The value (if found) and the steps spent searching.
+   * @brief Answers the cheap native question: peek the head (the minimum).
+   * @param out Set to the head's id, if the list is non-empty.
+   * @return Steps spent (0 if empty, 1 otherwise).
    */
-  inline std::pair<std::optional<ValueType>, int> query(
-    const KeyType& key) const {
-    int steps = 0;
-    Node* current = head;
-    while (current != nullptr && !(current->key > key)) {
-      ++steps;
-      if (current->key == key) {
-        return {current->value, steps};
-      }
-      current = current->next;
-    }
-    return {std::nullopt, steps};
-  }
+  int query(EnemyId& out) const override;
 
   /// @brief Number of stored entries. Costs 0 steps.
-  inline int size() const {
-    return count;
-  }
+  size_t size() const override;
+
 };
