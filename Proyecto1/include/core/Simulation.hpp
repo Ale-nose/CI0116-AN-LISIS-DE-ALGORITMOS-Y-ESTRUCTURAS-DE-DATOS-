@@ -7,7 +7,7 @@
  * @brief Configuration parameters needed to initialize Simulation
  */
 struct Config {
-  // TODO: Tema 3 STARTING_CREDITS, STARTING_LIVES, WAVE_BASE, etc
+  // TODO: se ocupa despues para 4.2 creo
 };
 
 /**
