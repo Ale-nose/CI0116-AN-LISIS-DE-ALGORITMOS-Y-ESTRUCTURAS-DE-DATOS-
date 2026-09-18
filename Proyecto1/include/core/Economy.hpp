@@ -30,7 +30,7 @@ class Economy {
    * @return true if current credits are greater than or equal to the price; 
    * false otherwise.
    */
-  bool canAfford(int price) {
+  bool canAfford(int price) const {
     return credits_ >= price;
   }
 
