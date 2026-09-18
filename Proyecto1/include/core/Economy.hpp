@@ -2,6 +2,7 @@
 
 #include "EconomyConstants.hpp"
 #include "CorePrices.hpp"
+#include "Wave.hpp"
 
 class Economy {
  public:
@@ -91,7 +92,7 @@ class Economy {
    * false otherwise.
    */
   bool isVictory(int wavesCompleted) const {
-    return wavesCompleted >= WAVE_COUNT;
+    return wavesCompleted >= TOTAL_WAVES;
   }
 
   /**
