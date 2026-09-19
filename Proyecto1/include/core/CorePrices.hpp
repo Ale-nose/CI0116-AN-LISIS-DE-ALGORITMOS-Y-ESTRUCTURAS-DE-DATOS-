@@ -22,7 +22,7 @@ constexpr int PRICE_SORTED_ARRAY = 150;
 constexpr int PRICE_BST = 220;
 constexpr int PRICE_AVL = 400;
 constexpr int PRICE_MIN_HEAP = 260;
-constexpr int PRICE_HASH_TABLE = 500;
+constexpr int PRICE_HASH_TABLE = 500;  // TODO(: raise PRICE_HASH_TABLE (no longer needs a paired tower, still priced as if it did). 
 
 
 /**
