@@ -1,8 +1,7 @@
 #include "Tower.hpp"
 
 Tower::Tower(std::unique_ptr<ITargetRegistry> registry)
-    : registry_(std::move(registry))
-{
+    : registry_(std::move(registry)) {
 }
 
 void Tower::installRegistry(std::unique_ptr<ITargetRegistry> registry)
@@ -54,6 +53,13 @@ bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut)
     {
         steps = registry_->query(firedTarget);
         fired = true;
+
+        // TODO(Theme 3.1): compute isNearestToBase for the Colossus rule
+        // (spec section 3.5: Colossus only receives damage if targeted as
+        // the nearest enemy to the firing tower). This requires comparing
+        // distanceToBase() across candidate live enemies in range.
+        // Enemy::takeDamage(amount, isNearestToBase) is already implemented
+        // in 3.4 to handle this condition once the boolean is provided here.
     }
 
     // ceil(steps / STEPS_PER_TICK) without <cmath>.

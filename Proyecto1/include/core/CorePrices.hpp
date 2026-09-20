@@ -22,7 +22,14 @@ constexpr int PRICE_SORTED_ARRAY = 150;
 constexpr int PRICE_BST = 220;
 constexpr int PRICE_AVL = 400;
 constexpr int PRICE_MIN_HEAP = 260;
-constexpr int PRICE_HASH_TABLE = 500;  // TODO(: raise PRICE_HASH_TABLE (no longer needs a paired tower, still priced as if it did). 
+
+/*
+Raised from the original 500 to 800 (double the AVL price, the next most 
+expensive structure). The hash table no longer needs a second, paired tower to 
+target on its own, so its price should reflect that it now offers, alone, what 
+used to take two towers to achieve.
+*/
+constexpr int PRICE_HASH_TABLE = 800;
 
 
 /**
