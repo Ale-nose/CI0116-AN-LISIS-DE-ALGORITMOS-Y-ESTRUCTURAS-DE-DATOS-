@@ -1,7 +1,7 @@
 #pragma once
 
 #include "KeyType.hpp"
-#include "Wave.hpp"
+#include "EnemyCategory.hpp"
 #include "Ticks.hpp"
 
 /**

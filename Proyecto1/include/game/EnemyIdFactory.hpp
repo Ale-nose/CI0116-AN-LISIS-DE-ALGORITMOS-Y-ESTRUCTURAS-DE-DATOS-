@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "KeyType.hpp"
-#include "Wave.hpp"
+#include "EnemyCategory.hpp"
 
 /**
  * @brief Generates category-specific EnemyIds designed to stress-test data 

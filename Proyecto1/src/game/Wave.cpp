@@ -1,5 +1,6 @@
 // Copyright 2026 Kevin Velásquez García
 #include "Wave.hpp"
+#include "EnemyIdFactory.hpp"
 
 #include <cmath>
 
@@ -50,7 +51,8 @@ void WaveManager::startCombat() {
   ticksSinceLastSpawn = 0;
 }
 
-std::optional<EnemyCategory> WaveManager::tick() {
+std::optional<Enemy> WaveManager::tick(int initialDistance,
+  std::size_t hiveBucketCount) {
   if (phase_ != WavePhase::Combat || doneSpawning()) {
     return std::nullopt;
   }
@@ -64,13 +66,13 @@ std::optional<EnemyCategory> WaveManager::tick() {
   EnemyCategory category = spawnQueue[nextToSpawn];
   ++nextToSpawn;
 
-  // TODO(Theme 3.1): spawn an actual Enemy here using Persona B's Enemy
-  // class (Enemy(id, category, initialDistance)) and generateEnemyId()
-  // for the id. Still missing: whatever module tracks the list of live
-  // enemies in the match — WaveManager only decides timing/category and
-  // has no place to hand this Enemy off to yet.
+  EnemyId id = generateEnemyId(category, totalSpawnedCount, hiveBucketCount);
+  ++totalSpawnedCount;
 
-  return category;
+  // TODO: still missing the module that tracks live enemies —
+  // WaveManager now creates the Enemy directly, but has nowhere to hand
+  // it off itself; whoever calls tick() must store the returned Enemy.
+  return Enemy(id, category, initialDistance);
 }
 
 bool WaveManager::doneSpawning() const {
