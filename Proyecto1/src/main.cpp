@@ -1,7 +1,17 @@
 #include <cstdio>
-#include "Ticks.hpp"
+#include "Cliargs.hpp"
+#include "headlessRunner.hpp"
 
-int main() {
+int main(int argc, char** argv) {
+    CliArgs args;
+    if (!parseCliArgs(argc, argv, args)) {
+        return 1;
+    }
 
-    return 0;
+    if (args.headless) {
+        return runHeadless(args);
+    }
+
+    std::printf("Windowed mode not implemented yet -- use --headless.\n");
+    return 1;
 }

@@ -1,13 +1,14 @@
 #include "Tower.hpp"
 
 Tower::Tower(std::unique_ptr<ITargetRegistry> registry)
-    : registry_(std::move(registry)) {
+    : registry_(std::move(registry))
+{
 }
 
 void Tower::installRegistry(std::unique_ptr<ITargetRegistry> registry)
 {
     registry_ = std::move(registry);
-    // Drop  maintenance: it referred to the previous core.
+    // Drop pending maintenance: it referred to the previous core.
     std::queue<MaintenanceOp> empty;
     std::swap(pending_, empty);
 }
@@ -46,11 +47,11 @@ bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut)
             ? registry_->insert(op.id, *op.key)
             : registry_->erase(op.id);
     }
-    //  TODO: querying an empty registry still sets fired = true 
-    // below, so the tower would count as having shot at a stale/invalid 
-    // firedTarget. Guard with registry_->size() > 0 before firing.
-    else
+    else if (registry_->size() > 0)
     {
+        // An empty registry has nothing to shoot at: querying it still
+        // costs 0 steps and leaves firedTarget untouched, so don't count
+        // it as a shot.
         steps = registry_->query(firedTarget);
         fired = true;
 
