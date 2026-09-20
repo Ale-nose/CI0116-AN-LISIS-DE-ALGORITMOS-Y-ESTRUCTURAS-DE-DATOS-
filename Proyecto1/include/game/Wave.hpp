@@ -5,24 +5,14 @@
 #include <cstddef>
 #include <optional>
 #include <vector>
+#include <cstdint>
+#include "Enemy.hpp"
+#include "EnemyCategory.hpp"
 
 constexpr int TOTAL_WAVES = 20;
 constexpr int WAVE_BASE = 20;           // enemies in wave 1
 constexpr double WAVE_FACTOR = 1.3;     // growth per wave: base * factor^(w-1)
 constexpr int WAVE_SPAWN_INTERVAL_TICKS = 10; // ticks between spawns during combat
-
-/// @brief The 5 enemy categories.
-enum class EnemyCategory {
-  Swarm,
-  Wraith,
-  Hive,
-  Decoy,
-  Colossus,
-  kCount  // not a real category; used to size arrays
-};
-
-constexpr size_t kCategoryCount =
-static_cast<size_t>(EnemyCategory::kCount);
 
 /// @brief How many enemies of each category make up a wave.
 struct WaveComposition {
@@ -68,6 +58,7 @@ class WaveManager {
   std::vector<EnemyCategory> spawnQueue;  // flattened, one entry per enemy
   size_t nextToSpawn;
   int ticksSinceLastSpawn;
+  uint64_t totalSpawnedCount;
 
   public:
   /// @brief Starts at wave 1, in the construction phase.
@@ -96,7 +87,7 @@ class WaveManager {
    *         spawn is due (either the timer hasn't elapsed yet, or the
    *         whole wave has already finished spawning).
    */
-  std::optional<EnemyCategory> tick();
+  std::optional<Enemy> tick(int initialDistance, std::size_t hiveBucketCount);
 
   /// @brief Whether every enemy in this wave has been handed off to tick().
   bool doneSpawning() const;
