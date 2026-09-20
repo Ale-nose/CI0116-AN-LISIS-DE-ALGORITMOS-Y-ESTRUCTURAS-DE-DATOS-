@@ -64,11 +64,11 @@ std::optional<EnemyCategory> WaveManager::tick() {
   EnemyCategory category = spawnQueue[nextToSpawn];
   ++nextToSpawn;
 
-  // TODO(Theme 3.1/3.4): this is where an actual Enemy should be created
-  // (assigning it an EnemyId, placing it at RouteData::at(0), and giving
-  // it whatever stats its `category` implies) and handed off to whatever
-  // tracks live enemies. WaveManager only decides timing/category, since
-  // it has no concept of Enemy, EnemyId, or the route.
+  // TODO(Theme 3.1): spawn an actual Enemy here using Persona B's Enemy
+  // class (Enemy(id, category, initialDistance)) and generateEnemyId()
+  // for the id. Still missing: whatever module tracks the list of live
+  // enemies in the match — WaveManager only decides timing/category and
+  // has no place to hand this Enemy off to yet.
 
   return category;
 }
