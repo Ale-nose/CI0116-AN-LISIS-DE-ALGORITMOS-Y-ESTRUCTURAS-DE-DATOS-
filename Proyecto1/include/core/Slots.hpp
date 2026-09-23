@@ -23,8 +23,9 @@ public:
     // Assigns a core to an empty slot, or replaces the one already there.
     // Any maintenance still pending against the old core is dropped
     // (handled inside Tower::installRegistry).
-    void installCore(int slotIndex, std::unique_ptr<ITargetRegistry> registry)
+    void installCore(int slotIndex, CoreType type, std::unique_ptr<ITargetRegistry> registry)
     {
+        installedTypes_[slotIndex] = type;
         if (towers_[slotIndex])
         {
             towers_[slotIndex]->installRegistry(std::move(registry));
@@ -33,6 +34,25 @@ public:
         {
             towers_[slotIndex] = std::make_unique<Tower>(std::move(registry));
         }
+    }
+
+    /**
+     * @brief Gets the core type installed in a given slot.
+     * @param slotIndex Index of the target tower slot.
+     * @return Optional containing the CoreType if installed, std::nullopt 
+     * otherwise.
+     */
+    std::optional<CoreType> installedType(int slotIndex) const {
+        return installedTypes_[slotIndex];
+    }
+
+    /**
+     * @brief Accesses the raw Tower pointer at a specific slot index.
+     * @param slotIndex Index of the target tower slot.
+     * @return Const pointer to the Tower object, or nullptr if empty.
+     */
+    const Tower* towerAt(int slotIndex) const {
+        return towers_[slotIndex].get();
     }
 
     // Section 2.4 — an enemy entered this slot's radius: schedule an
@@ -82,4 +102,5 @@ public:
 
 private:
     std::array<std::unique_ptr<Tower>, kSlotCount> towers_;
+    std::array<std::optional<CoreType>, kSlotCount> installedTypes_;
 };

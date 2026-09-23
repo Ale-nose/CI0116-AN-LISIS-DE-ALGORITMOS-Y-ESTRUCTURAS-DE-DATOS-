@@ -20,7 +20,6 @@ class HashTableRegistry : public ITargetRegistry {
     Key key;     ///< Hashing key (== id in this project).
   };
   
-  static constexpr int kInitialBucketCount = 8;   ///< Starting bucket count.
   static constexpr double kMaxLoadFactor = 0.75;  ///< Rehash threshold.
   
   /// @brief Maps a key to its bucket index.
@@ -39,6 +38,8 @@ class HashTableRegistry : public ITargetRegistry {
   int count;                                ///< Number of stored entries.
 
  public:
+  static constexpr int kInitialBucketCount = 8;   ///< Starting bucket count.
+
   /// @brief Creates an empty registry with kInitialBucketCount buckets.
   HashTableRegistry();
 
