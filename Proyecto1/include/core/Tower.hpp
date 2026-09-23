@@ -71,6 +71,14 @@ public:
         return !pending_.empty();
     }
 
+    /**
+     * @brief Gets the number of pending maintenance operations in queue.
+     * @return Number of queued insert/erase operations.
+     */
+    std::size_t pendingCount() const {
+        return pending_.size();
+    }
+
 private:
     std::unique_ptr<ITargetRegistry> registry_;
     std::queue<MaintenanceOp> pending_;

@@ -1,10 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include "CorePrices.hpp"
 #include "Slots.hpp"
 #include "Ticks.hpp"
 #include "Wave.hpp"
+#include "Grid.hpp"
+#include "MapBuilder.hpp"
+#include "Pathfinding.hpp"
+#include "Enemy.hpp"
 
 /**
  * @brief Configuration parameters needed to initialize Simulation
@@ -83,12 +88,24 @@ class Simulation {
    */
   void installCoreEverywhere(CoreType type);
 
+  /**
+   * @brief Provides read-only access to the slot manager.
+   * @return Const reference to the underlying SlotManager instance.
+   */
+  const SlotManager& slots() const {
+    return slots_;
+  }
+
  private:
   Config config_;
   Ticks ticks_engine_;
   WorldState world_state_;
   SlotManager slots_;
   WaveManager waves_;
+
+  Grid grid_;                         ///< Spatial grid structure representing the map layout.
+  RouteData route_;                   ///< Pathfinding route data used by enemies to reach the base.
+  std::vector<Enemy> active_enemies_; ///< List of active enemies currently spawned on the map.
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;
