@@ -10,6 +10,7 @@
 #include "MapBuilder.hpp"
 #include "Pathfinding.hpp"
 #include "Enemy.hpp"
+#include "Economy.hpp"
 
 /**
  * @brief Configuration parameters needed to initialize Simulation
@@ -25,6 +26,9 @@ struct WorldState {
   std::uint64_t ticks_elapsed = 0;  ///< Total ticks executed.
   bool game_over = false;
   int current_wave = 1;  ///< 1-based wave currently being previewed/fought.
+  int credits = STARTING_CREDITS;
+  int lives = STARTING_LIVES;
+  WaveComposition next_wave_composition{};
 };
 
 /**
@@ -96,12 +100,17 @@ class Simulation {
     return slots_;
   }
 
+  const Economy& economy() const {
+    return economy_;
+  }
+
  private:
   Config config_;
   Ticks ticks_engine_;
   WorldState world_state_;
   SlotManager slots_;
   WaveManager waves_;
+  Economy economy_;
 
   Grid grid_;                         ///< Spatial grid structure representing the map layout.
   RouteData route_;                   ///< Pathfinding route data used by enemies to reach the base.
