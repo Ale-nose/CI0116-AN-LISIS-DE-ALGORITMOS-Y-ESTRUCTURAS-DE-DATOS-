@@ -7,6 +7,7 @@ Simulation::Simulation(std::uint32_t seed, const Config& config)
   : config_(config), ticks_engine_(seed) {
   buildDefaultMap(grid_);
   route_ = buildRoute(grid_, /* entrance */ {0, 1}, /* exit */ {19, 9});
+  refreshWorldState();
 }
 
 void Simulation::tick() {
@@ -88,8 +89,9 @@ void Simulation::installCoreEverywhere(CoreType type) {
 }
 
 void Simulation::refreshWorldState() {
-  // ### Should also check an Economy defeat condition once enemies can
-  // ### actually reach the base (Topics 1.3/3.3/3.4).
-  world_state_.game_over = waves_.allWavesComplete();
+  world_state_.game_over = waves_.allWavesComplete() || economy_.isDefeated();
   world_state_.current_wave = waves_.currentWave();
+  world_state_.credits = economy_.getCredits();
+  world_state_.lives = economy_.getLives();
+  world_state_.next_wave_composition = waves_.composition();
 }
