@@ -1,5 +1,7 @@
 #include "Tower.hpp"
 
+#include <chrono>
+
 Tower::Tower(std::unique_ptr<ITargetRegistry> registry)
     : registry_(std::move(registry))
 {
@@ -39,6 +41,8 @@ bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut)
     int steps = 0;
     bool fired = false;
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     if (!pending_.empty())
     {
         MaintenanceOp op = pending_.front();
@@ -54,15 +58,12 @@ bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut)
         // it as a shot.
         steps = registry_->query(firedTarget);
         fired = true;
-
-        // TODO(Theme 3.1): compute isNearestToBase for the Colossus rule
-        // (spec section 3.5: Colossus only receives damage if targeted as
-        // the nearest enemy to the firing tower). This requires comparing
-        // distanceToBase() across candidate live enemies in range.
-        // Enemy::takeDamage(amount, isNearestToBase) is already implemented
-        // in 3.4 to handle this condition once the boolean is provided here.
     }
 
+    auto end = std::chrono::high_resolution_clock::now();
+    total_microseconds_ += std::chrono::duration_cast
+        <std::chrono::microseconds>(end - start).count();
+        
     // ceil(steps / STEPS_PER_TICK) without <cmath>.
     busy_ticks_ = (steps + STEPS_PER_TICK - 1) / STEPS_PER_TICK;
 

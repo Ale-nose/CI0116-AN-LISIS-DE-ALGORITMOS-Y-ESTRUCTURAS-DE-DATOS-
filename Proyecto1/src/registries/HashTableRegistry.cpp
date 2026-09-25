@@ -25,6 +25,7 @@ int HashTableRegistry::rehash() {
       int index = bucketIndex(entry.key);
       buckets[index].push_back(entry);
       ++steps;
+      counter_.shift();  // moving an element during rehash
     }
   }
   return steps;
@@ -42,6 +43,7 @@ int HashTableRegistry::insert(EnemyId id, Key k) {
   std::vector<Entry>& chain = buckets[index];
   for (Entry& entry : chain) {
     ++steps;
+    counter_.comparison();
     if (entry.id == id) {
       entry.key = k;  // key already exists, just update
       return steps;
@@ -63,6 +65,7 @@ int HashTableRegistry::erase(EnemyId id) {
   std::vector<Entry>& chain = buckets[index];
   for (auto it = chain.begin(); it != chain.end(); ++it) {
     ++steps;
+    counter_.comparison();
     if (it->id == id) {
       chain.erase(it);
       ++steps;
@@ -77,6 +80,7 @@ int HashTableRegistry::query(EnemyId& out) const {
   int steps = 0;
   for (const std::vector<Entry>& chain : buckets) {
     ++steps;  // checking whether this bucket is empty
+    counter_.comparison();  // checking if bucket empty
     if (!chain.empty()) {
       out = chain.front().id;
       return steps;

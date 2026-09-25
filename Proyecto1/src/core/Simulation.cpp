@@ -84,7 +84,7 @@ Stats Simulation::stats() const {
 
 void Simulation::installCoreEverywhere(CoreType type) {
   for (int i = 0; i < SlotManager::kSlotCount; ++i) {
-    slots_.installCore(i, type, createCore(type));
+    slots_.installCore(i, type);
   }
 }
 
@@ -92,7 +92,7 @@ bool Simulation::purchaseCore(int slotIndex, CoreType type) {
   if (!economy_.buyCore(type)) {
     return false;  // can't afford it — nothing charged, nothing installed
   }
-  slots_.installCore(slotIndex, type, createCore(type));
+  slots_.installCore(slotIndex, type);
   return true;
 }
 

@@ -25,6 +25,7 @@ int LinkedListRegistry::erase(EnemyId id) {
 
   while (current != nullptr) {
     ++steps;
+    counter_.comparison();
     if (current->id == id) {
       if (previous == nullptr) {
         head = current->next;
@@ -37,6 +38,7 @@ int LinkedListRegistry::erase(EnemyId id) {
       return steps;
     }
     previous = current;
+    counter_.pointerHop();
     current = current->next;
   }
   return steps;

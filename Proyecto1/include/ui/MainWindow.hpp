@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 
-private slots:
+private Q_SLOTS:
     void onTick();
 
     // Section 5.3 — opens the upgrade dialog for the clicked slot; on

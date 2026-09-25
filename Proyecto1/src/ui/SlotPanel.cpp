@@ -24,7 +24,7 @@ SlotPanel::SlotPanel(QWidget* parent) : QFrame(parent) {
 }
 
 void SlotPanel::mousePressEvent(QMouseEvent* /*event*/) {
-  emit clicked();
+  Q_EMIT clicked();
 }
 
 void SlotPanel::showEmpty() {

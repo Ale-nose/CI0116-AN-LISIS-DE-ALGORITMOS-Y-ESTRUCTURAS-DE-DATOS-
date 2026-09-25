@@ -105,14 +105,12 @@ class Enemy {
    * @brief Processes incoming damage applied to the enemy based on 
    * category-specific rules.
    * @param amount Hit points of damage to inflict.
-   * @param isNearestToBase Flag indicating if this enemy is currently the 
-   * closest candidate to the base within the firing tower's reach.
    * @return true if this damage instance fatalizes the enemy (reducing life 
    * to 0); false otherwise.
-   * @note Decoys take no damage. Colossus units ignore damage unless 
-   * `isNearestToBase` is true.
+   * @note Decoys take no damage. Colossus has no special damage rule
+   * anymore — its resistance comes entirely from its higher base life.
    */
-  bool takeDamage(int amount, bool isNearestToBase);
+  bool takeDamage(int amount);
 
   /**
    * @brief Advances the enemy position closer toward the base.

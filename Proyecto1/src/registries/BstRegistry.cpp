@@ -25,6 +25,7 @@ int BstRegistry::insert(EnemyId id, Key k) {
   Node* current = root;
   while (true) {
     ++steps;
+    counter_.comparison();
     if (k == current->key) {
       current->id = id;  // key already present, just update
       return steps;
@@ -35,6 +36,7 @@ int BstRegistry::insert(EnemyId id, Key k) {
         ++count;
         return steps;
       }
+      counter_.pointerHop();
       current = current->left;
     } else {
       if (current->right == nullptr) {
@@ -43,6 +45,7 @@ int BstRegistry::insert(EnemyId id, Key k) {
         ++count;
         return steps;
       }
+      counter_.pointerHop();
       current = current->right;
     }
   }
@@ -55,7 +58,10 @@ int BstRegistry::erase(EnemyId id) {
 
   while (current != nullptr && current->id != id) {
     ++steps;
+    counter_.comparison();
+
     parent = current;
+    counter_.pointerHop();
     current = (id < current->key) ? current->left : current->right;
   }
 
@@ -63,6 +69,7 @@ int BstRegistry::erase(EnemyId id) {
     return steps;  // not found: full path already walked
   }
   ++steps;  // the comparison that confirmed the match
+  counter_.comparison();
 
   if (current->left != nullptr && current->right != nullptr) {
     // Two children: replace with the in-order successor (min of right subtree).
@@ -70,6 +77,7 @@ int BstRegistry::erase(EnemyId id) {
     Node* successor = current->right;
     while (successor->left != nullptr) {
       ++steps;
+      counter_.pointerHop();
       successorParent = successor;
       successor = successor->left;
     }

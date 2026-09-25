@@ -21,6 +21,8 @@ class SortedListRegistry : public ITargetRegistry {
   Node* head;         ///< First (smallest-key) node, or nullptr if empty.
   size_t count;       ///< Number of stored entries.
 
+  StepCounter counter_;
+
  public:
   /// @brief Creates an empty registry.
   SortedListRegistry();
@@ -60,4 +62,5 @@ class SortedListRegistry : public ITargetRegistry {
   /// @brief Number of stored entries. Costs 0 steps.
   size_t size() const override;
 
+  const StepCounter& stepBreakdown() const override { return counter_; }
 };

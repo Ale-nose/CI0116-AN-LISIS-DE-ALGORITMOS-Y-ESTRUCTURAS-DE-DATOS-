@@ -42,10 +42,12 @@ AvlRegistry::Node* AvlRegistry::insertRec(
   if (node == nullptr) {
     ++count;
     ++steps;
+    counter_.pointerHop();
     return new Node{id, k, nullptr, nullptr, 1};
   }
 
   ++steps;  // comparison at this level
+  counter_.comparison();
   if (k == node->key) {
     node->id = id;
     return node;
@@ -60,22 +62,28 @@ AvlRegistry::Node* AvlRegistry::insertRec(
 
   if (balance > 1 && k < node->left->key) {          // left-left
     ++steps;
+    counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && k > node->right->key) {         // right-right
     ++steps;
+    counter_.rotation();
     return rotateLeft(node);
   }
   if (balance > 1 && k > node->left->key) {           // left-right
     node->left = rotateLeft(node->left);
     ++steps;
+    counter_.rotation();
     ++steps;
+    counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && k < node->right->key) {         // right-left
     node->right = rotateRight(node->right);
     ++steps;
+    counter_.rotation();
     ++steps;
+    counter_.rotation();
     return rotateLeft(node);
   }
 
@@ -85,6 +93,7 @@ AvlRegistry::Node* AvlRegistry::insertRec(
 AvlRegistry::Node* AvlRegistry::findMin(Node* node, int& steps) const {
   while (node->left != nullptr) {
     ++steps;
+    counter_.pointerHop();
     node = node->left;
   }
   return node;
@@ -97,6 +106,7 @@ AvlRegistry::Node* AvlRegistry::eraseRec(
   }
 
   ++steps;
+  counter_.comparison();
   if (id < node->key) {
     node->left = eraseRec(node->left, id, steps, found);
   } else if (id > node->key) {
@@ -127,22 +137,28 @@ AvlRegistry::Node* AvlRegistry::eraseRec(
 
   if (balance > 1 && balanceFactor(node->left) >= 0) {
     ++steps;
+    counter_.rotation();
     return rotateRight(node);
   }
   if (balance > 1 && balanceFactor(node->left) < 0) {
     node->left = rotateLeft(node->left);
     ++steps;
+    counter_.rotation();
     ++steps;
+    counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && balanceFactor(node->right) <= 0) {
     ++steps;
+    counter_.rotation();
     return rotateLeft(node);
   }
   if (balance < -1 && balanceFactor(node->right) > 0) {
     node->right = rotateRight(node->right);
     ++steps;
+    counter_.rotation();
     ++steps;
+    counter_.rotation();
     return rotateLeft(node);
   }
 

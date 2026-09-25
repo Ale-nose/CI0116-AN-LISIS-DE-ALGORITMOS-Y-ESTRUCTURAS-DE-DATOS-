@@ -21,6 +21,8 @@ class DynamicArrayRegistry : public ITargetRegistry {
   int capacity;  ///< Allocated slots.
   int count;     ///< Slots actually in use.
 
+  StepCounter counter_;
+
  public:
   /// @brief Creates an empty registry with room for 4 entries.
   DynamicArrayRegistry();
@@ -56,4 +58,6 @@ class DynamicArrayRegistry : public ITargetRegistry {
 
   /// @brief Number of stored entries. Costs 0 steps.
   size_t size() const override;
+
+  const StepCounter& stepBreakdown() const override { return counter_; }
 };

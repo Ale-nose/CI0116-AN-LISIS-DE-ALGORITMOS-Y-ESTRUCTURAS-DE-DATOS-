@@ -13,7 +13,7 @@ EnemyStats getEnemyStats(EnemyCategory category) {
     case EnemyCategory::Decoy:
       return {0, 0};
     case EnemyCategory::Colossus:
-      return {400, 400};
+      return {800, 400};  // life raised from 400 to 800
     case EnemyCategory::kCount:
       return {0, 0};  // not a real category
   }
@@ -41,12 +41,9 @@ void Enemy::tick() {
   }
 }
 
-bool Enemy::takeDamage(int amount, bool isNearestToBase) {
+bool Enemy::takeDamage(int amount) {
   if (isInvulnerable()) {
     return false;  // Decoys are invulnerable and take no damage
-  }
-  if (category_ == EnemyCategory::Colossus && !isNearestToBase) {
-    return false;  // Colossus ignores damage unless it is the target closest to base
   }
 
   life_ -= amount;

@@ -26,6 +26,8 @@ SortedArrayRegistry::SearchResult SortedArrayRegistry::binarySearch(Key key) con
 
   while (low <= high) {
     ++steps;
+    counter_.comparison();
+
     int mid = low + (high - low) / 2;
     if (data[mid].key == key) {
       return {mid, true, steps};
@@ -49,6 +51,7 @@ int SortedArrayRegistry::insert(EnemyId id, Key k) {
   for (int i = count; i > result.index; --i) {
     data[i] = data[i - 1];
     ++steps;  // one step per shifted element
+    counter_.shift();
   }
 
   data[result.index] = Entry{id, k};
@@ -67,6 +70,7 @@ int SortedArrayRegistry::erase(EnemyId id) {
   for (int i = result.index; i < count - 1; ++i) {
     data[i] = data[i + 1];
     ++steps;  // one step per shifted element
+    counter_.shift();
   }
   --count;
   return steps;

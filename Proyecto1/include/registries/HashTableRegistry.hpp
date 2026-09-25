@@ -37,6 +37,8 @@ class HashTableRegistry : public ITargetRegistry {
   std::vector<std::vector<Entry>> buckets;  ///< One chain per bucket.
   int count;                                ///< Number of stored entries.
 
+  mutable StepCounter counter_;
+
  public:
   static constexpr int kInitialBucketCount = 8;   ///< Starting bucket count.
 
@@ -68,4 +70,6 @@ class HashTableRegistry : public ITargetRegistry {
 
   /// @brief Number of stored entries. Costs 0 steps.
   size_t size() const override;
+
+  const StepCounter& stepBreakdown() const override { return counter_; }
 };

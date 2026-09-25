@@ -9,8 +9,11 @@ int MinHeapRegistry::siftUp(int index, int& steps) {
   while (index > 0) {
     int parent = (index - 1) / 2;
     ++steps;
+    counter_.comparison();
     if (data[parent].key <= data[index].key) break;
+
     std::swap(data[parent], data[index]);
+    counter_.shift();
     index = parent;
   }
   return index;
@@ -24,14 +27,17 @@ int MinHeapRegistry::siftDown(int index, int& steps) {
 
     if (left < count) {
       ++steps;
+      counter_.comparison();
       if (data[left].key < data[smallest].key) smallest = left;
     }
     if (right < count) {
       ++steps;
+      counter_.comparison();
       if (data[right].key < data[smallest].key) smallest = right;
     }
     if (smallest == index) break;
     std::swap(data[index], data[smallest]);
+    counter_.shift();
     index = smallest;
   }
   return index;
@@ -50,6 +56,7 @@ int MinHeapRegistry::erase(EnemyId id) {
   int index = -1;
   for (int i = 0; i < count; ++i) {
     ++steps;  // linear search: a min-heap has no order besides "root is min"
+    counter_.comparison();
     if (data[i].id == id) {
       index = i;
       break;
@@ -63,6 +70,7 @@ int MinHeapRegistry::erase(EnemyId id) {
   data.pop_back();
   --count;
   ++steps;  // move the last element into the hole
+  counter_.shift();
 
   if (index < count) {
     int afterUp = siftUp(index, steps);
