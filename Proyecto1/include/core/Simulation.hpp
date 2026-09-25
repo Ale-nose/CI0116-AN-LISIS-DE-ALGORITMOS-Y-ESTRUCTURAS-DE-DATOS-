@@ -1,10 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include "CorePrices.hpp"
 #include "Slots.hpp"
 #include "Ticks.hpp"
 #include "Wave.hpp"
+#include "Grid.hpp"
+#include "MapBuilder.hpp"
+#include "Pathfinding.hpp"
+#include "Enemy.hpp"
+#include "Economy.hpp"
 
 /**
  * @brief Configuration parameters needed to initialize Simulation
@@ -20,6 +26,9 @@ struct WorldState {
   std::uint64_t ticks_elapsed = 0;  ///< Total ticks executed.
   bool game_over = false;
   int current_wave = 1;  ///< 1-based wave currently being previewed/fought.
+  int credits = STARTING_CREDITS;
+  int lives = STARTING_LIVES;
+  WaveComposition next_wave_composition{};
 };
 
 /**
@@ -84,16 +93,35 @@ class Simulation {
   void installCoreEverywhere(CoreType type);
 
   /**
-   * @brief Section 5.3 — gives the UI access to the slots so it can
-   * install a purchased core and read per-slot state for 5.2's panels.
+   * @brief Section 5.3 — buys a core from Economy and, only if the
+   * purchase succeeds, installs it in the given slot. Atomic: never
+   * charges credits without installing, never installs without paying.
+   * @param slotIndex Slot to install the purchased core into.
+   * @param type Structure the player chose in the upgrade dialog.
+   * @return true if the purchase went through.
+   */
+  bool purchaseCore(int slotIndex, CoreType type);
+
+  /**
+   * @brief Provides read-only access to the slot manager, for the UI to
+   * read per-slot state (5.2's panels).
    * @note Named slotManager(), not slots() — Qt defines `slots` as a
    * macro, which breaks a method with that exact name in any file that
    * also includes Qt headers.
-   * @return Reference to the SlotManager.
+   * @return Const reference to the underlying SlotManager instance.
    */
-  SlotManager& slotManager()
-  {
+  const SlotManager& slotManager() const {
     return slots_;
+  }
+
+  /**
+   * @brief Provides read-only access to the economy, for the upgrade
+   * dialog (5.3) to show current credits and grey out unaffordable
+   * options.
+   * @return Const reference to the underlying Economy instance.
+   */
+  const Economy& economy() const {
+    return economy_;
   }
 
  private:
@@ -102,6 +130,11 @@ class Simulation {
   WorldState world_state_;
   SlotManager slots_;
   WaveManager waves_;
+  Economy economy_;
+
+  Grid grid_;                          ///< Spatial grid structure representing the map layout.
+  RouteData route_;                    ///< Pathfinding route data used by enemies to reach the base.
+  std::vector<Enemy> active_enemies_;  ///< List of active enemies currently spawned on the map.
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;
@@ -110,11 +143,9 @@ class Simulation {
 
   /**
    * @brief Syncs public WorldState with internal engine state: pulls the
-   * current wave and whether every wave has been completed.
-   * @note game_over currently reflects only wave completion — there are
-   * no live enemies yet (Topics 1.3/3.4 aren't wired into tick()), so
-   * Economy's defeat condition can never trigger. Once enemies exist,
-   * this should also check economy_.isDefeated().
+   * current wave, credits, lives, next wave composition, and whether
+   * the match has ended (all waves complete or the player was
+   * defeated).
    */
   void refreshWorldState();
 };

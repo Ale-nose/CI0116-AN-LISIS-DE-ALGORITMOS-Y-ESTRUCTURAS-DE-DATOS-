@@ -1,24 +1,38 @@
 #include "Simulation.hpp"
 
+#include "CoreFactory.hpp"
+#include "HashTableRegistry.hpp"
+
 Simulation::Simulation(std::uint32_t seed, const Config& config)
   : config_(config), ticks_engine_(seed) {
+  buildDefaultMap(grid_);
+  route_ = buildRoute(grid_, /* entrance */ {0, 1}, /* exit */ {19, 9});
+  refreshWorldState();
 }
 
 void Simulation::tick() {
   ticks_engine_.tick();
   ++world_state_.ticks_elapsed;
 
-  // ### Enemy spawning/movement (Topics 1.3/3.4) belongs here: place the
-  // ### Enemy waves_.tick() returns via Pathfinding, and enqueueInsert/
-  // ### enqueueErase on whichever slots it enters/leaves. initialDistance
-  // ### and hiveBucketCount below are placeholders (0 and 8) until the
-  // ### map exposes a real entrance-to-base distance and the hash core's
-  // ### real bucket count. Until that's wired in, every occupied slot
-  // ### just repeatedly fires query() against an empty registry.
   if (waves_.phase() == WavePhase::Construction) {
     waves_.startCombat();
   }
-  waves_.tick(/*initialDistance=*/0, /*hiveBucketCount=*/8);
+
+  int initialDistance = static_cast<int>(route_.length());
+  // Attempt to spawn a new enemy for the current tick
+  auto spawnedEnemy = waves_.tick(initialDistance,
+    static_cast<std::size_t>(HashTableRegistry::kInitialBucketCount));
+
+  if (spawnedEnemy.has_value()) {
+    active_enemies_.push_back(*spawnedEnemy);
+
+    for (int i = 0; i < SlotManager::kSlotCount; i++) {
+      // TODO(Topic 3.1): determine which slot(s) currently have this
+      // enemy within radius, based on its position along route_, and
+      // enqueueInsert only on those. Right now the enemy exists in
+      // active_enemies_ but isn't tracked by any tower yet.
+    }
+  }
 
   auto results = slots_.tickAll();
   for (const auto& r : results) {
@@ -28,7 +42,8 @@ void Simulation::tick() {
     total_steps_ += static_cast<std::uint64_t>(r.stepsUsed);
   }
 
-  if (waves_.doneSpawning() && !waves_.allWavesComplete()) {
+  if (waves_.doneSpawning() && !waves_.allWavesComplete()
+      && active_enemies_.empty()) {
     waves_.advanceToNextWave();
   }
 
@@ -69,13 +84,22 @@ Stats Simulation::stats() const {
 
 void Simulation::installCoreEverywhere(CoreType type) {
   for (int i = 0; i < SlotManager::kSlotCount; ++i) {
-    slots_.installCore(i, type);
+    slots_.installCore(i, type, createCore(type));
   }
 }
 
+bool Simulation::purchaseCore(int slotIndex, CoreType type) {
+  if (!economy_.buyCore(type)) {
+    return false;  // can't afford it — nothing charged, nothing installed
+  }
+  slots_.installCore(slotIndex, type, createCore(type));
+  return true;
+}
+
 void Simulation::refreshWorldState() {
-  // ### Should also check an Economy defeat condition once enemies can
-  // ### actually reach the base (Topics 1.3/3.3/3.4).
-  world_state_.game_over = waves_.allWavesComplete();
+  world_state_.game_over = waves_.allWavesComplete() || economy_.isDefeated();
   world_state_.current_wave = waves_.currentWave();
+  world_state_.credits = economy_.getCredits();
+  world_state_.lives = economy_.getLives();
+  world_state_.next_wave_composition = waves_.composition();
 }

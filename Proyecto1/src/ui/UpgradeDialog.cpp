@@ -7,11 +7,7 @@
 #include "CoreDisplay.hpp"
 
 namespace {
-
-// CoreType values don't fit in a QVariant on their own; Qt::UserRole
-// data needs an int, so we round-trip through the underlying type.
 constexpr int kCoreTypeRole = Qt::UserRole;
-
 }  // namespace
 
 UpgradeDialog::UpgradeDialog(int slotIndex, const Economy& economy, QWidget* parent)

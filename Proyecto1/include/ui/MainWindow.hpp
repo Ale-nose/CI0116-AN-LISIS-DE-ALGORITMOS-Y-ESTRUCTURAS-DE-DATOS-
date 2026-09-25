@@ -1,9 +1,8 @@
 #pragma once
 
-#include <QLabel>
 #include <QMainWindow>
 #include <QTimer>
-#include "Economy.hpp"
+#include "HudPanel.hpp"
 #include "MapView.hpp"
 #include "Simulation.hpp"
 #include "SlotGridView.hpp"
@@ -19,18 +18,15 @@ private slots:
     void onTick();
 
     // Section 5.3 — opens the upgrade dialog for the clicked slot; on
-    // acceptance, charges Economy and installs the chosen core.
+    // acceptance, purchases and installs the chosen core.
     void onSlotClicked(int slotIndex);
 
 private:
-    static constexpr int REFRESH_INTERVAL_MS = MS_PER_TICK;
-
-    void refreshCreditsLabel();
+    static constexpr int REFRESH_INTERVAL_MS = 100;  // UI refresh rate, not the game's fixed tick
 
     Simulation simulation_;
-    Economy economy_;
+    HudPanel* hud_ = nullptr;
     MapView* mapView_ = nullptr;
     SlotGridView* slotGrid_ = nullptr;
-    QLabel* creditsLabel_ = nullptr;
     QTimer* timer_ = nullptr;
 };
