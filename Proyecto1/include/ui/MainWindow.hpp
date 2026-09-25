@@ -6,6 +6,7 @@
 #include "MapView.hpp"
 #include "Simulation.hpp"
 #include "SlotGridView.hpp"
+#include "HudPanel.hpp"
 
 class MainWindow : public QMainWindow
 {

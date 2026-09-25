@@ -1,3 +1,5 @@
+#include <QVBoxLayout>
+
 #include "MainWindow.hpp"
 
 #include <QVBoxLayout>
