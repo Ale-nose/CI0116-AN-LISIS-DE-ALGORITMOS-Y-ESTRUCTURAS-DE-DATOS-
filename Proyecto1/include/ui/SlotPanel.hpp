@@ -20,7 +20,7 @@ public:
     void showEmpty();
     void showOccupied(CoreType type, std::size_t enemiesTracked, int lagPercent);
 
-signals:
+Q_SIGNALS:
     // Emitted on any click on this panel. SlotGridView knows which
     // index this panel is and re-emits slotClicked(index) from it.
     void clicked();

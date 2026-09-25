@@ -16,6 +16,7 @@ int DynamicArrayRegistry::insert(EnemyId id, Key k) {
     for (int i = 0; i < count; ++i) {
       newData[i] = data[i];
       ++steps;  // one step per element copied while growing
+      counter_.shift();  // copying during growth
     }
     delete[] data;
     data = newData;
@@ -32,6 +33,7 @@ int DynamicArrayRegistry::erase(EnemyId id) {
   int index = -1;
   for (int i = 0; i < count; ++i) {
     ++steps;
+    counter_.comparison();
     if (data[i].id == id) {
       index = i;
       break;
@@ -42,6 +44,7 @@ int DynamicArrayRegistry::erase(EnemyId id) {
   }
   data[index] = data[count - 1];  // swap with the last element
   ++steps;
+  counter_.shift();  // the swap-with-last write
   --count;
   return steps;
 }

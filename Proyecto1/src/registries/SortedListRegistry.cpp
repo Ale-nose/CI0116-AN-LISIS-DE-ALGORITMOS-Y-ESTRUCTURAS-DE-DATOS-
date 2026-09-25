@@ -19,7 +19,9 @@ int SortedListRegistry::insert(EnemyId id, Key k) {
 
   while (current != nullptr && current->key < k) {
     ++steps;
+    counter_.comparison();
     previous = current;
+    counter_.pointerHop();
     current = current->next;
   }
 
@@ -42,6 +44,7 @@ int SortedListRegistry::erase(EnemyId id) {
   // Early exit: stop as soon as we pass where id's key would be.
   while (current != nullptr && !(current->key > id)) {
     ++steps;
+    counter_.comparison();
     if (current->id == id) {
       if (previous == nullptr) {
         head = current->next;
@@ -54,6 +57,7 @@ int SortedListRegistry::erase(EnemyId id) {
       return steps;
     }
     previous = current;
+    counter_.pointerHop();
     current = current->next;
   }
   return steps;

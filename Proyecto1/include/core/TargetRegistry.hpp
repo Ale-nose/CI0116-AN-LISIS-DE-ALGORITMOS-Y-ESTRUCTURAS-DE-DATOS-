@@ -54,4 +54,6 @@ public:
 
     // Current number of tracked enemies. Not counted as steps.
     virtual std::size_t size() const = 0;
+
+    virtual const StepCounter& stepBreakdown() const = 0;
 };

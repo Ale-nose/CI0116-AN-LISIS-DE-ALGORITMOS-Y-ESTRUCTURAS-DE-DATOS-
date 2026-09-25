@@ -54,7 +54,7 @@ void MapView::mousePressEvent(QMouseEvent* event) {
     const auto& positions = towerSlotPositions();
     for (std::size_t i = 0; i < positions.size(); ++i) {
         if (positions[i].first == cellX && positions[i].second == cellY) {
-            emit slotClicked(static_cast<int>(i));
+            Q_EMIT slotClicked(static_cast<int>(i));
             return;
         }
     }

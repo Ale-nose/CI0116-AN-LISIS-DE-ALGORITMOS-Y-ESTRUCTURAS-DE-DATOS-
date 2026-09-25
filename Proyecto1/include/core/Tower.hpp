@@ -77,8 +77,11 @@ public:
         return static_cast<int>(pending_.size());
     }
 
+    std::uint64_t totalMicroseconds() const { return total_microseconds_; }
+
 private:
     std::unique_ptr<ITargetRegistry> registry_;
     std::queue<MaintenanceOp> pending_;
     int busy_ticks_ = 0;
+    std::uint64_t total_microseconds_ = 0;
 };

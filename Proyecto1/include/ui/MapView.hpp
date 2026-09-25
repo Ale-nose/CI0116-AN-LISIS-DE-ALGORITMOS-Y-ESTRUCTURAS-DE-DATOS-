@@ -9,7 +9,7 @@ class MapView : public QWidget {
 public:
     explicit MapView(QWidget* parent = nullptr);
 
-signals:
+Q_SIGNALS:
     // Section 5.3's trigger: emitted when the player clicks a cell that
     // is one of the 8 tower slots. slotIndex matches SlotManager's
     // 0..7 indexing (see MapBuilder::towerSlotPositions()).

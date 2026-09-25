@@ -38,6 +38,8 @@ class MinHeapRegistry : public ITargetRegistry {
   std::vector<Entry> data;  ///< Backing array, kept in heap order.
   int count;                ///< Number of stored entries.
 
+  StepCounter counter_;
+
  public:
   /// @brief Creates an empty registry.
   MinHeapRegistry();
@@ -70,4 +72,6 @@ class MinHeapRegistry : public ITargetRegistry {
 
   /// @brief Number of stored entries. Costs 0 steps.
   size_t size() const override;
+
+  const StepCounter& stepBreakdown() const override { return counter_; }
 };
