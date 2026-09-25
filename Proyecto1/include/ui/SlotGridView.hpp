@@ -24,9 +24,12 @@ class SlotGridView : public QWidget {
   explicit SlotGridView(QWidget* parent = nullptr);
 
   /**
-   * @brief Refreshes all slot panel displays using the current SlotManager 
+   * @brief Refreshes all slot panel displays using the current SlotManager
    * state.
-   * @param slots Const reference to the simulation's SlotManager instance.
+   * @note Parameter named `manager`, not `slots` — Qt defines `slots` as
+   * a macro, which breaks a parameter with that exact name in any file
+   * that also includes Qt headers (this one does).
+   * @param manager Const reference to the simulation's SlotManager instance.
    */
-  void refresh(const SlotManager& slots);
+  void refresh(const SlotManager& manager);
 };

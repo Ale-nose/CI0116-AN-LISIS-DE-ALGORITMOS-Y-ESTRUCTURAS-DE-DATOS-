@@ -1,5 +1,6 @@
 #include "MapView.hpp"
 
+#include <QMouseEvent>
 #include <QPainter>
 #include "MapBuilder.hpp"
 
@@ -35,6 +36,26 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
 
             painter.setPen(Qt::black);
             painter.drawRect(cellRect);
+        }
+    }
+}
+
+void MapView::mousePressEvent(QMouseEvent* event) {
+    int cellX = event->pos().x() / kCellSize;
+    int cellY = event->pos().y() / kCellSize;
+
+    if (!Grid::inBounds(cellX, cellY)) {
+        return;
+    }
+    if (grid_.at(cellX, cellY) != CellType::TowerSlot) {
+        return;
+    }
+
+    const auto& positions = towerSlotPositions();
+    for (std::size_t i = 0; i < positions.size(); ++i) {
+        if (positions[i].first == cellX && positions[i].second == cellY) {
+            emit slotClicked(static_cast<int>(i));
+            return;
         }
     }
 }

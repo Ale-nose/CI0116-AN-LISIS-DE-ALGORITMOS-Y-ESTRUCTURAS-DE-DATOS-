@@ -1,5 +1,7 @@
 #pragma once 
 
+#include <array>
+
 /**
  * @enum CoreType
  * @brief Identifies the available core registry structures for towers.
@@ -14,6 +16,24 @@ enum class CoreType {
   MinHeap,
   HashTable
 };
+
+/**
+ * @brief All 8 core types, in a fixed order. Useful for iterating over
+ * every available structure (e.g. the upgrade dialog, section 5.3).
+ */
+inline const std::array<CoreType, 8>& allCoreTypes() {
+  static constexpr std::array<CoreType, 8> kTypes = {
+    CoreType::LinkedList,
+    CoreType::SortedList,
+    CoreType::DynamicArray,
+    CoreType::SortedArray,
+    CoreType::Bst,
+    CoreType::Avl,
+    CoreType::MinHeap,
+    CoreType::HashTable,
+  };
+  return kTypes;
+}
 
 constexpr int PRICE_LINKED_LIST = 0;
 constexpr int PRICE_SORTED_LIST = 60;

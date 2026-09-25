@@ -55,16 +55,19 @@ inline std::vector<Point> shortestPath(
 }
 
 // Collects every cell marked as a tower slot.
+// Named towerCells, not slots — Qt defines `slots` as a macro, which
+// mangles a local variable with that exact name in any file that also
+// includes Qt headers.
 inline std::vector<Point> findTowerSlots(const Grid& grid) {
-  std::vector<Point> slots;
+  std::vector<Point> towerCells;
   for (int y = 0; y < GRID_HEIGHT; ++y) {
     for (int x = 0; x < GRID_WIDTH; ++x) {
       if (grid.at(x, y) == CellType::TowerSlot) {
-        slots.push_back({x, y});
+        towerCells.push_back({x, y});
       }
     }
   }
-  return slots;
+  return towerCells;
 }
 
 // Computes the route and tower slots once, at game start.

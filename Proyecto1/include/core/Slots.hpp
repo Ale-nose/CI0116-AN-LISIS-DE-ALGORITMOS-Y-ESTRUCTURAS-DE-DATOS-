@@ -1,15 +1,16 @@
 #pragma once
 #include <array>
 #include <memory>
+#include <optional>
+#include "CoreFactory.hpp"
+#include "CorePrices.hpp"
 #include "Tower.hpp"
 #include "Ticks.hpp"
 
 // Section 3.1 — models the board's 8 fixed tower slots. A slot starts
 // empty (no tower installed) until the player buys a core for it; from
 // then on, installCore() replaces whatever was there ("reemplazo de
-// núcleo"). SlotManager only manages the slot <-> Tower bookkeeping — it
-// has no idea which of the 8 concrete ITargetRegistry structures is
-// behind any given Tower, nor any range/geometry logic.
+// núcleo").
 class SlotManager
 {
 public:
@@ -23,36 +24,30 @@ public:
     // Assigns a core to an empty slot, or replaces the one already there.
     // Any maintenance still pending against the old core is dropped
     // (handled inside Tower::installRegistry).
-    void installCore(int slotIndex, CoreType type, std::unique_ptr<ITargetRegistry> registry)
+    void installCore(int slotIndex, CoreType type)
     {
-        installedTypes_[slotIndex] = type;
         if (towers_[slotIndex])
         {
-            towers_[slotIndex]->installRegistry(std::move(registry));
+            towers_[slotIndex]->installRegistry(createCore(type));
         }
         else
         {
-            towers_[slotIndex] = std::make_unique<Tower>(std::move(registry));
+            towers_[slotIndex] = std::make_unique<Tower>(createCore(type));
         }
+        installedTypes_[slotIndex] = type;
     }
 
-    /**
-     * @brief Gets the core type installed in a given slot.
-     * @param slotIndex Index of the target tower slot.
-     * @return Optional containing the CoreType if installed, std::nullopt 
-     * otherwise.
-     */
-    std::optional<CoreType> installedType(int slotIndex) const {
-        return installedTypes_[slotIndex];
-    }
-
-    /**
-     * @brief Accesses the raw Tower pointer at a specific slot index.
-     * @param slotIndex Index of the target tower slot.
-     * @return Const pointer to the Tower object, or nullptr if empty.
-     */
-    const Tower* towerAt(int slotIndex) const {
+    // Section 5.2 — read-only access for the UI to draw each slot's
+    // indicators (installed structure, registry size, lag bar).
+    const Tower* towerAt(int slotIndex) const
+    {
         return towers_[slotIndex].get();
+    }
+
+    // The CoreType installed in this slot, or std::nullopt if empty.
+    std::optional<CoreType> installedType(int slotIndex) const
+    {
+        return installedTypes_[slotIndex];
     }
 
     // Section 2.4 — an enemy entered this slot's radius: schedule an

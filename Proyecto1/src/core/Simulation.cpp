@@ -20,8 +20,8 @@ void Simulation::tick() {
 
   int initialDistance = static_cast<int>(route_.length());
   // Attempt to spawn a new enemy for the current tick
-  auto spawnedEnemy = waves_.tick(initialDistance
-    , static_cast<std::size_t>(HashTableRegistry::kInitialBucketCount));
+  auto spawnedEnemy = waves_.tick(initialDistance,
+    static_cast<std::size_t>(HashTableRegistry::kInitialBucketCount));
 
   if (spawnedEnemy.has_value()) {
     active_enemies_.push_back(*spawnedEnemy);
@@ -42,7 +42,7 @@ void Simulation::tick() {
     total_steps_ += static_cast<std::uint64_t>(r.stepsUsed);
   }
 
-  if (waves_.doneSpawning() && !waves_.allWavesComplete() 
+  if (waves_.doneSpawning() && !waves_.allWavesComplete()
       && active_enemies_.empty()) {
     waves_.advanceToNextWave();
   }
@@ -86,6 +86,14 @@ void Simulation::installCoreEverywhere(CoreType type) {
   for (int i = 0; i < SlotManager::kSlotCount; ++i) {
     slots_.installCore(i, type, createCore(type));
   }
+}
+
+bool Simulation::purchaseCore(int slotIndex, CoreType type) {
+  if (!economy_.buyCore(type)) {
+    return false;  // can't afford it — nothing charged, nothing installed
+  }
+  slots_.installCore(slotIndex, type, createCore(type));
+  return true;
 }
 
 void Simulation::refreshWorldState() {

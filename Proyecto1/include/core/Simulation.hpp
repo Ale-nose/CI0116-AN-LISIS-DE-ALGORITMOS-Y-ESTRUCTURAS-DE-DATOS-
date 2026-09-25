@@ -93,13 +93,33 @@ class Simulation {
   void installCoreEverywhere(CoreType type);
 
   /**
-   * @brief Provides read-only access to the slot manager.
+   * @brief Section 5.3 — buys a core from Economy and, only if the
+   * purchase succeeds, installs it in the given slot. Atomic: never
+   * charges credits without installing, never installs without paying.
+   * @param slotIndex Slot to install the purchased core into.
+   * @param type Structure the player chose in the upgrade dialog.
+   * @return true if the purchase went through.
+   */
+  bool purchaseCore(int slotIndex, CoreType type);
+
+  /**
+   * @brief Provides read-only access to the slot manager, for the UI to
+   * read per-slot state (5.2's panels).
+   * @note Named slotManager(), not slots() — Qt defines `slots` as a
+   * macro, which breaks a method with that exact name in any file that
+   * also includes Qt headers.
    * @return Const reference to the underlying SlotManager instance.
    */
-  const SlotManager& slots() const {
+  const SlotManager& slotManager() const {
     return slots_;
   }
 
+  /**
+   * @brief Provides read-only access to the economy, for the upgrade
+   * dialog (5.3) to show current credits and grey out unaffordable
+   * options.
+   * @return Const reference to the underlying Economy instance.
+   */
   const Economy& economy() const {
     return economy_;
   }
@@ -112,9 +132,9 @@ class Simulation {
   WaveManager waves_;
   Economy economy_;
 
-  Grid grid_;                         ///< Spatial grid structure representing the map layout.
-  RouteData route_;                   ///< Pathfinding route data used by enemies to reach the base.
-  std::vector<Enemy> active_enemies_; ///< List of active enemies currently spawned on the map.
+  Grid grid_;                          ///< Spatial grid structure representing the map layout.
+  RouteData route_;                    ///< Pathfinding route data used by enemies to reach the base.
+  std::vector<Enemy> active_enemies_;  ///< List of active enemies currently spawned on the map.
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;
@@ -123,11 +143,9 @@ class Simulation {
 
   /**
    * @brief Syncs public WorldState with internal engine state: pulls the
-   * current wave and whether every wave has been completed.
-   * @note game_over currently reflects only wave completion — there are
-   * no live enemies yet (Topics 1.3/3.4 aren't wired into tick()), so
-   * Economy's defeat condition can never trigger. Once enemies exist,
-   * this should also check economy_.isDefeated().
+   * current wave, credits, lives, next wave composition, and whether
+   * the match has ended (all waves complete or the player was
+   * defeated).
    */
   void refreshWorldState();
 };
