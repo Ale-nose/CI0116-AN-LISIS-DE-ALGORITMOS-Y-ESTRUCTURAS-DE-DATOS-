@@ -71,12 +71,10 @@ public:
         return !pending_.empty();
     }
 
-    /**
-     * @brief Gets the number of pending maintenance operations in queue.
-     * @return Number of queued insert/erase operations.
-     */
-    std::size_t pendingCount() const {
-        return pending_.size();
+    // Section 5.2 — size of the maintenance FIFO, for the lag bar.
+    int pendingCount() const
+    {
+        return static_cast<int>(pending_.size());
     }
 
 private:

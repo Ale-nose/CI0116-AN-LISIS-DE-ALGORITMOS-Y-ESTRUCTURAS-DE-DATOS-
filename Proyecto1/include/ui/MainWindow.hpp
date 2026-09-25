@@ -1,32 +1,36 @@
 #pragma once
 
+#include <QLabel>
 #include <QMainWindow>
 #include <QTimer>
-
+#include "Economy.hpp"
+#include "MapView.hpp"
 #include "Simulation.hpp"
 #include "SlotGridView.hpp"
 
-class MainWindow : public QMainWindow {
-  Q_OBJECT
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
 
- private:
-  Simulation simulation_;
-  SlotGridView* slotGrid_;   ///< Grid layout widget representing all tower slots.
-  QTimer* timer_;            ///< Refresh timer driving real-time UI updates.
+public:
+    explicit MainWindow(QWidget* parent = nullptr);
 
-  static constexpr int REFRESH_INTERVAL_MS = 100; // UI refresh rate, not the game's fixed tick
+private slots:
+    void onTick();
 
- public:
-  /**
-   * @brief Constructs the main application window.
-   * @param parent Optional pointer to the parent QWidget container.
-   */
-  explicit MainWindow(QWidget* parent = nullptr);
+    // Section 5.3 — opens the upgrade dialog for the clicked slot; on
+    // acceptance, charges Economy and installs the chosen core.
+    void onSlotClicked(int slotIndex);
 
- private Q_SLOTS:
-  /**
-   * @brief Callback function executed automatically on every timer timeout.
-   * Advances the game engine simulation and refreshes the UI slot view.
-   */
-  void onTick();
+private:
+    static constexpr int REFRESH_INTERVAL_MS = MS_PER_TICK;
+
+    void refreshCreditsLabel();
+
+    Simulation simulation_;
+    Economy economy_;
+    MapView* mapView_ = nullptr;
+    SlotGridView* slotGrid_ = nullptr;
+    QLabel* creditsLabel_ = nullptr;
+    QTimer* timer_ = nullptr;
 };

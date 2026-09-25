@@ -1,15 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 #include "CorePrices.hpp"
 #include "Slots.hpp"
 #include "Ticks.hpp"
 #include "Wave.hpp"
-#include "Grid.hpp"
-#include "MapBuilder.hpp"
-#include "Pathfinding.hpp"
-#include "Enemy.hpp"
 
 /**
  * @brief Configuration parameters needed to initialize Simulation
@@ -89,10 +84,15 @@ class Simulation {
   void installCoreEverywhere(CoreType type);
 
   /**
-   * @brief Provides read-only access to the slot manager.
-   * @return Const reference to the underlying SlotManager instance.
+   * @brief Section 5.3 — gives the UI access to the slots so it can
+   * install a purchased core and read per-slot state for 5.2's panels.
+   * @note Named slotManager(), not slots() — Qt defines `slots` as a
+   * macro, which breaks a method with that exact name in any file that
+   * also includes Qt headers.
+   * @return Reference to the SlotManager.
    */
-  const SlotManager& slots() const {
+  SlotManager& slotManager()
+  {
     return slots_;
   }
 
@@ -102,10 +102,6 @@ class Simulation {
   WorldState world_state_;
   SlotManager slots_;
   WaveManager waves_;
-
-  Grid grid_;                         ///< Spatial grid structure representing the map layout.
-  RouteData route_;                   ///< Pathfinding route data used by enemies to reach the base.
-  std::vector<Enemy> active_enemies_; ///< List of active enemies currently spawned on the map.
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;

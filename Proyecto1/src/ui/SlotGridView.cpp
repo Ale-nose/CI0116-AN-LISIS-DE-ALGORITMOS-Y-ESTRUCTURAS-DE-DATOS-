@@ -2,8 +2,13 @@
 
 #include <algorithm>
 #include <QGridLayout>
-
 #include "Tower.hpp"
+
+namespace {
+
+constexpr int MAX_EXPECTED_PENDING = 10;
+
+}  // namespace
 
 SlotGridView::SlotGridView(QWidget* parent) : QWidget(parent) {
   auto* layout = new QGridLayout(this);
@@ -16,6 +21,11 @@ SlotGridView::SlotGridView(QWidget* parent) : QWidget(parent) {
     auto* panel = new SlotPanel(this);
     panels_[i] = panel;
 
+    // Section 5.3 — a click on slot i's panel becomes slotClicked(i).
+    connect(panel, &SlotPanel::clicked, this, [this, i]() {
+      emit slotClicked(i);
+    });
+
     int row = i / kColumns;
     int col = i % kColumns;
     layout->addWidget(panel, row, col);
@@ -24,20 +34,20 @@ SlotGridView::SlotGridView(QWidget* parent) : QWidget(parent) {
   setLayout(layout);
 }
 
-void SlotGridView::refresh(const SlotManager& slots) {
+void SlotGridView::refresh(const SlotManager& manager) {
   for (int i = 0; i < SlotManager::kSlotCount; i++) {
     // Reset panel view if no tower/core is currently installed
-    if (!slots.hasTower(i)) {
+    if (!manager.hasTower(i)) {
       panels_[i]->showEmpty();
       continue;
     }
 
-    const Tower* tower = slots.towerAt(i);
-    auto type = slots.installedType(i);
+    const Tower* tower = manager.towerAt(i);
+    auto type = manager.installedType(i);
 
-    int lagPercent = std::min(100, static_cast<int>(tower->pendingCount()) 
+    int lagPercent = std::min(100, tower->pendingCount()
     * 100 / MAX_EXPECTED_PENDING);  // maintenance backlog percentage
-  
+
     // Update occupied slot panel with registry metrics
     panels_[i]->showOccupied(*type, tower->registrySize(), lagPercent);
   }

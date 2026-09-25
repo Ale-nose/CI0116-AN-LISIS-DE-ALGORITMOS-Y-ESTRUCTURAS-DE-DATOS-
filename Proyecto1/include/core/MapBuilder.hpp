@@ -8,6 +8,20 @@
 
 using Point = std::pair<int, int>;
 
+// Fixed tower slot positions (level design). Order defines slot index:
+// slot 0 is towerSlotPositions()[0], slot 1 is [1], etc. — SlotManager
+// uses this same 0..7 indexing, so MapView can map a click on one of
+// these cells directly to the slot index Simulation/SlotManager expects.
+inline const std::vector<Point>& towerSlotPositions() {
+  static const std::vector<Point> kPositions = {
+    {9, 0}, {9, 2},
+    {1, 4}, {17, 4},
+    {10, 4}, {10, 6},
+    {5, 8}, {15, 8},
+  };
+  return kPositions;
+}
+
 // Paints a straight (horizontal or vertical) run of Path cells between
 // two points, both ends included.
 inline void fillPathSegment(Grid& grid, Point from, Point to) {
@@ -43,15 +57,9 @@ inline void buildDefaultMap(Grid& grid) {
   grid.set(0, 1, CellType::Entrance);
   grid.set(19, 9, CellType::Exit);
 
-  // Fixed tower slot positions (level design, adjust freely).
-  std::vector<Point> towerSlots = {
-    {9, 0}, {9, 2},
-    {1, 4}, {17, 4},
-    {10, 4}, {10, 6},
-    {5, 8}, {15, 8},
-  };
-
-  for (auto& [tx, ty] : towerSlots) {
+  // Fixed tower slot positions, shared with SlotManager via
+  // towerSlotPositions() so a click on cell i always means slot i.
+  for (auto& [tx, ty] : towerSlotPositions()) {
     grid.set(tx, ty, CellType::TowerSlot);
   }
 }

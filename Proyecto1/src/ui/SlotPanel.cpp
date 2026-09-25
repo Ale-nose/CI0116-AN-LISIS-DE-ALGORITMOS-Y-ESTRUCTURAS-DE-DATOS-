@@ -1,5 +1,6 @@
 #include "SlotPanel.hpp"
 
+#include <QMouseEvent>
 #include <QVBoxLayout>
 
 SlotPanel::SlotPanel(QWidget* parent) : QFrame(parent) {
@@ -20,6 +21,10 @@ SlotPanel::SlotPanel(QWidget* parent) : QFrame(parent) {
   layout->addWidget(lagBar_);
 
   setLayout(layout);
+}
+
+void SlotPanel::mousePressEvent(QMouseEvent* /*event*/) {
+  emit clicked();
 }
 
 void SlotPanel::showEmpty() {
@@ -45,11 +50,11 @@ QString SlotPanel::coreTypeName(CoreType type) {
       return "Dynamic Array";
     case CoreType::SortedArray:
       return "Sorted Array";
-    case CoreType::Bst:    
+    case CoreType::Bst:
       return "BST";
-    case CoreType::Avl:     
+    case CoreType::Avl:
       return "AVL";
-    case CoreType::MinHeap:   
+    case CoreType::MinHeap:
       return "Min Heap";
     case CoreType::HashTable:
       return "Hash Table";

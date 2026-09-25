@@ -1,32 +1,25 @@
 #pragma once
 
-#include <QWidget>
 #include <array>
-
+#include <QWidget>
 #include "SlotPanel.hpp"
 #include "Slots.hpp"
 
-/// Maximum expected pending maintenance operations before lag bar hits 100%.
-constexpr int MAX_EXPECTED_PENDING = 20;
+// Section 5.2 — lays out one SlotPanel per slot in a 4-column grid.
+// Also section 5.3's entry point: turns a click on any panel into a
+// slotClicked(index) signal for the upgrade dialog to react to.
+class SlotGridView : public QWidget
+{
+    Q_OBJECT
 
-class SlotGridView : public QWidget {
-  Q_OBJECT
+public:
+    explicit SlotGridView(QWidget* parent = nullptr);
 
- private:
-  /// Array of slot panel widgets mapping to each tower slot.
-  std::array<SlotPanel*, SlotManager::kSlotCount> panels_;
+    void refresh(const SlotManager& manager);
 
- public:
-  /**
-   * @brief Constructs the slot grid view container.
-   * @param parent Optional pointer to the parent QWidget container.
-   */
-  explicit SlotGridView(QWidget* parent = nullptr);
+signals:
+    void slotClicked(int slotIndex);
 
-  /**
-   * @brief Refreshes all slot panel displays using the current SlotManager 
-   * state.
-   * @param slots Const reference to the simulation's SlotManager instance.
-   */
-  void refresh(const SlotManager& slots);
+private:
+    std::array<SlotPanel*, SlotManager::kSlotCount> panels_{};
 };
