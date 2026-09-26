@@ -10,13 +10,15 @@ import csv
 import sys
 
 EXPECTED_COLUMNS = [
-    "seed", "wave", "slot", "structure", "ticks", "max_size", "avg_size",
+    "seed", "hash", "enemies", "wave", "slot", "structure", "ticks",
+    "max_size", "avg_size",
     "inserts", "erases", "queries", "steps_total", "steps_insert",
     "steps_erase", "steps_query", "comparisons", "pointer_hops", "shifts",
     "rotations", "real_us", "max_queue", "avg_queue", "empty_queue_ticks",
-    "empty_queue_ratio", "effective_shots", "ghost_shots",
+    "empty_queue_ratio", "effective_shots", "ghost_shots", "peak_height",
+    "peak_bucket_count", "peak_used_buckets", "peak_max_bucket",
 ]
-TEXT_COLUMNS = {"structure"}
+TEXT_COLUMNS = {"hash", "enemies", "structure"}
 DECIMAL_COLUMNS = {"avg_size", "real_us", "avg_queue", "empty_queue_ratio"}
 
 
@@ -46,9 +48,10 @@ def check_file(path):
                                   "is not a plain number")
             if len(values) != len(EXPECTED_COLUMNS) - len(TEXT_COLUMNS):
                 continue
-            key = (values["seed"], values["wave"], values["slot"])
+            key = (values["seed"], row["hash"], row["enemies"],
+                   row["structure"], values["wave"], values["slot"])
             if key in seen:
-                errors.append(f"line {line}: duplicate seed/wave/slot {key}")
+                errors.append(f"line {line}: duplicate row {key}")
             seen.add(key)
             by_category = (values["comparisons"] + values["pointer_hops"]
                            + values["shifts"] + values["rotations"])

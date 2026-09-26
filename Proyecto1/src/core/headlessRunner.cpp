@@ -8,8 +8,11 @@
 
 namespace {
 
-// Section 4.2 — one-line match summary on stdout. The detailed per-tower
-// per-wave data goes to the combat log file (--out), section 6.1.
+/**
+ * @brief Section 4.2 — prints a one-line match summary on stdout. The
+ * detailed per-tower per-wave data goes to the combat log (--out).
+ * @param stats Final statistics of the match.
+ */
 void printSummary(const Stats& stats) {
   std::cout << "ticks_run=" << stats.ticks_run
             << " simulated_ms=" << stats.simulated_ms
@@ -32,11 +35,30 @@ int runHeadless(const CliArgs& args) {
     return 1;
   }
 
-  // ### args.waves is accepted by the CLI but Simulation always plays
-  // ### out all TOTAL_WAVES (Wave.hpp) — capping the match short at
-  // ### args.waves needs a stop-early hook in WaveManager/Simulation
-  // ### that doesn't exist yet.
+  if (args.waves < 1 || args.waves > TOTAL_WAVES) {
+    std::cerr << "--waves must be between 1 and " << TOTAL_WAVES << "\n";
+    return 1;
+  }
+
+  std::optional<HashMode> hashMode = hashModeFromName(args.hash);
+  if (!hashMode) {
+    std::cerr << "Unknown --hash name: " << args.hash
+              << " (use default or mixed)\n";
+    return 1;
+  }
+
   Config cfg;
+  cfg.maxWaves = args.waves;
+  cfg.hashMode = *hashMode;
+  cfg.ignoreDefeat = args.ignoreDefeat;
+  if (!args.only.empty()) {
+    cfg.onlyCategory = categoryFromName(args.only);
+    if (!cfg.onlyCategory) {
+      std::cerr << "Unknown --only category: " << args.only << "\n";
+      return 1;
+    }
+  }
+
   Simulation sim(args.seed, cfg);
   sim.installCoreEverywhere(*coreType);
 
@@ -45,7 +67,16 @@ int runHeadless(const CliArgs& args) {
   }
 
   printSummary(sim.stats());
-  if (!writeCombatLog(sim.combatLog(), args.seed, args.outPath)) {
+
+  RunInfo run;
+  run.seed = args.seed;
+  run.hash = args.hash;
+  run.enemies = args.only.empty() ? "all" : args.only;
+  if (!writeCombatLog(sim.combatLog(), run, args.outPath)) {
+    return 1;
+  }
+  if (!args.bucketsOut.empty()
+      && !writeBucketLog(sim.combatLog(), run, args.bucketsOut)) {
     return 1;
   }
 

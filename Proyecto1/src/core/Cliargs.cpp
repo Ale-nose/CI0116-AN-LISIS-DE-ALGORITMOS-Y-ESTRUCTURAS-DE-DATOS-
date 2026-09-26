@@ -6,6 +6,14 @@
 
 namespace {
 
+/**
+ * @brief Checks that a flag expecting a value is followed by one.
+ * @param flag Flag being parsed, for the error message.
+ * @param i Index of the flag in argv.
+ * @param argc Total argument count.
+ * @return false (after printing the reason to stderr) if the value is
+ * missing.
+ */
 bool needsValue(const char* flag, int i, int argc) {
   if (i + 1 >= argc) {
     std::cerr << "Missing value for " << flag << "\n";
@@ -43,6 +51,23 @@ bool parseCliArgs(int argc, char** argv, CliArgs& outArgs) {
         return false;
       }
       outArgs.outPath = argv[++i];
+    } else if (arg == "--ignore-defeat") {
+      outArgs.ignoreDefeat = true;
+    } else if (arg == "--hash") {
+      if (!needsValue("--hash", i, argc)) {
+        return false;
+      }
+      outArgs.hash = argv[++i];
+    } else if (arg == "--only") {
+      if (!needsValue("--only", i, argc)) {
+        return false;
+      }
+      outArgs.only = argv[++i];
+    } else if (arg == "--buckets-out") {
+      if (!needsValue("--buckets-out", i, argc)) {
+        return false;
+      }
+      outArgs.bucketsOut = argv[++i];
     } else {
       std::cerr << "Unknown argument: " << arg << "\n";
       return false;

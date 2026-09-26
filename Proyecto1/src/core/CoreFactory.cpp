@@ -10,7 +10,8 @@
 #include "SortedArrayRegistry.hpp"
 #include "SortedListRegistry.hpp"
 
-std::unique_ptr<ITargetRegistry> createCore(CoreType type) {
+std::unique_ptr<ITargetRegistry> createCore(CoreType type,
+    HashMode hashMode) {
   switch (type) {
     case CoreType::LinkedList:
       return std::make_unique<LinkedListRegistry>();
@@ -27,7 +28,7 @@ std::unique_ptr<ITargetRegistry> createCore(CoreType type) {
     case CoreType::MinHeap:
       return std::make_unique<MinHeapRegistry>();
     case CoreType::HashTable:
-      return std::make_unique<HashTableRegistry>();
+      return std::make_unique<HashTableRegistry>(hashMode);
   }
 
   return nullptr;  // unreachable if every CoreType is handled above
@@ -80,6 +81,54 @@ std::string coreTypeToName(CoreType type) {
       return "min_heap";
     case CoreType::HashTable:
       return "hash_table";
+  }
+  return "unknown";
+}
+
+std::optional<HashMode> hashModeFromName(const std::string& name) {
+  if (name == "default") {
+    return HashMode::Default;
+  }
+  if (name == "mixed") {
+    return HashMode::Mixed;
+  }
+  return std::nullopt;
+}
+
+std::string hashModeToName(HashMode mode) {
+  switch (mode) {
+    case HashMode::Default:
+      return "default";
+    case HashMode::Mixed:
+      return "mixed";
+  }
+  return "unknown";
+}
+
+std::optional<EnemyCategory> categoryFromName(const std::string& name) {
+  for (std::size_t i = 0; i < kCategoryCount; ++i) {
+    EnemyCategory category = static_cast<EnemyCategory>(i);
+    if (categoryToName(category) == name) {
+      return category;
+    }
+  }
+  return std::nullopt;
+}
+
+std::string categoryToName(EnemyCategory category) {
+  switch (category) {
+    case EnemyCategory::Swarm:
+      return "swarm";
+    case EnemyCategory::Wraith:
+      return "wraith";
+    case EnemyCategory::Hive:
+      return "hive";
+    case EnemyCategory::Decoy:
+      return "decoy";
+    case EnemyCategory::Colossus:
+      return "colossus";
+    case EnemyCategory::kCount:
+      break;
   }
   return "unknown";
 }

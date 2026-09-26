@@ -1,6 +1,7 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "Wave.hpp"
 #include <cmath>
+#include <utility>
 #include "EnemyIdFactory.hpp"
 
 int WaveComposition::total() const {
@@ -16,8 +17,14 @@ int waveSize(int waveNumber) {
   return static_cast<int>(size + 0.5);  // round to nearest
 }
 
-WaveComposition buildComposition(int totalSize) {
+WaveComposition buildComposition(int totalSize,
+    std::optional<EnemyCategory> onlyCategory) {
   WaveComposition composition;
+  if (onlyCategory) {
+    composition.perCategory[static_cast<std::size_t>(*onlyCategory)] =
+      totalSize;
+    return composition;
+  }
   int base = totalSize / static_cast<int>(kCategoryCount);
   int remainder = totalSize % static_cast<int>(kCategoryCount);
 
@@ -30,12 +37,17 @@ WaveComposition buildComposition(int totalSize) {
   return composition;
 }
 
-WaveManager::WaveManager()
+WaveManager::WaveManager(std::uint32_t seed,
+    std::optional<EnemyCategory> onlyCategory)
     : currentWave_(1),
       phase_(WavePhase::Construction),
-      composition_(buildComposition(waveSize(1))),
+      composition_(buildComposition(waveSize(1), onlyCategory)),
       nextToSpawn(0),
-      ticksSinceLastSpawn(0) {}
+      combatTicks(0),
+      spawnWindowTicks(0),
+      totalSpawnedCount(0),
+      onlyCategory_(onlyCategory),
+      rng_(seed) {}
 
 void WaveManager::startCombat() {
   phase_ = WavePhase::Combat;
@@ -46,32 +58,54 @@ void WaveManager::startCombat() {
       spawnQueue.push_back(static_cast<EnemyCategory>(category));
     }
   }
+  // Shuffle the spawn order with the seeded RNG (Fisher-Yates written
+  // out by hand: std::shuffle's algorithm is implementation-defined, so
+  // it could give a different order on another standard library, while
+  // std::mt19937's output is fixed by the standard).
+  for (std::size_t i = spawnQueue.size(); i > 1; --i) {
+    std::size_t j = static_cast<std::size_t>(rng_() % i);
+    std::swap(spawnQueue[i - 1], spawnQueue[j]);
+  }
+
   nextToSpawn = 0;
-  ticksSinceLastSpawn = 0;
+  combatTicks = 0;
+
+  // Normal pace (one every WAVE_SPAWN_INTERVAL_TICKS) unless that would
+  // take longer than WAVE_MAX_SPAWN_TICKS; then squeeze into that window.
+  long long normalWindow =
+    static_cast<long long>(spawnQueue.size()) * WAVE_SPAWN_INTERVAL_TICKS;
+  spawnWindowTicks = static_cast<int>(
+    normalWindow < WAVE_MAX_SPAWN_TICKS ? normalWindow
+                                        : WAVE_MAX_SPAWN_TICKS);
 }
 
-std::optional<Enemy> WaveManager::tick(int initialDistance,
-  std::size_t hiveBucketCount) {
+std::vector<Enemy> WaveManager::tick(int initialDistance,
+  std::size_t hiveIdStride) {
+  std::vector<Enemy> spawned;
   if (phase_ != WavePhase::Combat || doneSpawning()) {
-    return std::nullopt;
+    return spawned;
   }
 
-  ++ticksSinceLastSpawn;
-  if (ticksSinceLastSpawn < WAVE_SPAWN_INTERVAL_TICKS) {
-    return std::nullopt;
+  ++combatTicks;
+  // Integer spread: after t ticks, floor(t * size / window) enemies are
+  // due. At the normal pace this is exactly one every
+  // WAVE_SPAWN_INTERVAL_TICKS; for big waves several per tick.
+  std::size_t total = spawnQueue.size();
+  std::size_t due = static_cast<std::size_t>(
+    static_cast<long long>(combatTicks) * static_cast<long long>(total)
+    / spawnWindowTicks);
+  if (due > total) {
+    due = total;
   }
 
-  ticksSinceLastSpawn = 0;
-  EnemyCategory category = spawnQueue[nextToSpawn];
-  ++nextToSpawn;
-
-  EnemyId id = generateEnemyId(category, totalSpawnedCount, hiveBucketCount);
-  ++totalSpawnedCount;
-
-  // TODO(Kevin): still missing the module that tracks live enemies —
-  // WaveManager now creates the Enemy directly, but has nowhere to hand
-  // it off itself; whoever calls tick() must store the returned Enemy.
-  return Enemy(id, category, initialDistance);
+  while (nextToSpawn < due) {
+    EnemyCategory category = spawnQueue[nextToSpawn];
+    ++nextToSpawn;
+    EnemyId id = generateEnemyId(category, totalSpawnedCount, hiveIdStride);
+    ++totalSpawnedCount;
+    spawned.emplace_back(id, category, initialDistance);
+  }
+  return spawned;
 }
 
 bool WaveManager::doneSpawning() const {
@@ -82,6 +116,6 @@ void WaveManager::advanceToNextWave() {
   ++currentWave_;
   phase_ = WavePhase::Construction;
   if (!allWavesComplete()) {
-    composition_ = buildComposition(waveSize(currentWave_));
+    composition_ = buildComposition(waveSize(currentWave_), onlyCategory_);
   }
 }

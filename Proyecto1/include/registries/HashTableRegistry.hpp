@@ -6,6 +6,16 @@
 #include "TargetRegistry.hpp"
 
 /**
+ * @brief Which function maps a key to a bucket (report question 5).
+ */
+enum class HashMode {
+  Default,  ///< Library hash (identity for integers) modulo the bucket
+            ///< count; Hive ids are built to all collide under it.
+  Mixed     ///< SplitMix64 bit mixing before the modulo: the "corrected"
+            ///< function that spreads Hive ids across buckets.
+};
+
+/**
  * @brief Target registry backed by a hash table with separate chaining.
  *
  * Amortized O(1) insert/erase by id. Has no natural order, so its
@@ -36,14 +46,18 @@ class HashTableRegistry : public ITargetRegistry {
 
   std::vector<std::vector<Entry>> buckets;  ///< One chain per bucket.
   int count;                                ///< Number of stored entries.
+  HashMode hashMode_;                       ///< Key -> bucket function.
 
   mutable StepCounter counter_;
 
  public:
   static constexpr int kInitialBucketCount = 8;   ///< Starting bucket count.
 
-  /// @brief Creates an empty registry with kInitialBucketCount buckets.
-  HashTableRegistry();
+  /**
+   * @brief Creates an empty registry with kInitialBucketCount buckets.
+   * @param mode Hash function used to pick a bucket (default: identity).
+   */
+  explicit HashTableRegistry(HashMode mode = HashMode::Default);
 
   /**
    * @brief Inserts a key/value pair, rehashing first if needed.
@@ -72,4 +86,11 @@ class HashTableRegistry : public ITargetRegistry {
   size_t size() const override;
 
   const StepCounter& stepBreakdown() const override { return counter_; }
+
+  /**
+   * @brief Report question 5 — length of every bucket's chain.
+   * Diagnostic only, costs 0 steps.
+   * @return A shape with one bucketLengths entry per bucket.
+   */
+  RegistryShape shape() const override;
 };

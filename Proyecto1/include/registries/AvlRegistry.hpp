@@ -105,4 +105,11 @@ class AvlRegistry : public ITargetRegistry {
   size_t size() const override;
 
   const StepCounter& stepBreakdown() const override { return counter_; }
+
+  /**
+   * @brief Report question 6 — current tree height. Diagnostic only,
+   * costs 0 steps.
+   * @return A shape whose height is the tree's (0 if empty).
+   */
+  RegistryShape shape() const override;
 };

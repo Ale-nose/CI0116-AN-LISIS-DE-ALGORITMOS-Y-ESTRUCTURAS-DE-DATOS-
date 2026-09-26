@@ -6,10 +6,12 @@
 
 #include "CombatConstants.hpp"
 #include "CoreFactory.hpp"
+#include "EnemyIdFactory.hpp"
 #include "HashTableRegistry.hpp"
 
 Simulation::Simulation(std::uint32_t seed, const Config& config)
-  : config_(config), ticks_engine_(seed) {
+  : config_(config), ticks_engine_(seed),
+    waves_(seed, config.onlyCategory) {
   buildDefaultMap(grid_);
   route_ = buildRoute(grid_, /* entrance */ {0, 1}, /* exit */ {19, 9});
   refreshWorldState();
@@ -24,14 +26,10 @@ void Simulation::tick() {
   }
 
   int initialDistance = static_cast<int>(route_.length());
-  // Attempt to spawn a new enemy for the current tick
-  auto spawnedEnemy = waves_.tick(initialDistance,
-    static_cast<std::size_t>(HashTableRegistry::kInitialBucketCount));
-
-  if (spawnedEnemy.has_value()) {
-    EnemyId id = spawnedEnemy->getId();
-    auto inserted = active_enemies_.emplace(
-      id, TrackedEnemy{*spawnedEnemy, {}});
+  // Big waves spawn several enemies per tick (see WAVE_MAX_SPAWN_TICKS).
+  for (const Enemy& spawned : waves_.tick(initialDistance, HIVE_ID_STRIDE)) {
+    EnemyId id = spawned.getId();
+    auto inserted = active_enemies_.emplace(id, TrackedEnemy{spawned, {}});
     updateRangeMembership(id, inserted.first->second);
   }
 
@@ -60,7 +58,7 @@ void Simulation::tick() {
       removeEnemy(r.target);
     }
   }
-  if (waves_.doneSpawning() && !waves_.allWavesComplete()
+  if (waves_.doneSpawning() && !reachedWaveLimit()
       && active_enemies_.empty()) {
     logWave(waves_.currentWave());
     waves_.advanceToNextWave();
@@ -70,7 +68,7 @@ void Simulation::tick() {
 
   // A defeat ends the match mid-wave: log that unfinished wave once so
   // the file still covers every tick that was played.
-  if (world_state_.game_over && !waves_.allWavesComplete()
+  if (world_state_.game_over && !reachedWaveLimit()
       && !final_wave_logged_) {
     logWave(waves_.currentWave());
     final_wave_logged_ = true;
@@ -184,7 +182,7 @@ Stats Simulation::stats() const {
 
 void Simulation::installCoreEverywhere(CoreType type) {
   for (int i = 0; i < SlotManager::kSlotCount; ++i) {
-    slots_.installCore(i, type);
+    slots_.installCore(i, type, config_.hashMode);
   }
 }
 
@@ -192,12 +190,13 @@ bool Simulation::purchaseCore(int slotIndex, CoreType type) {
   if (!economy_.buyCore(type)) {
     return false;  // can't afford it — nothing charged, nothing installed
   }
-  slots_.installCore(slotIndex, type);
+  slots_.installCore(slotIndex, type, config_.hashMode);
   return true;
 }
 
 void Simulation::refreshWorldState() {
-  world_state_.game_over = waves_.allWavesComplete() || economy_.isDefeated();
+  bool defeated = economy_.isDefeated() && !config_.ignoreDefeat;
+  world_state_.game_over = reachedWaveLimit() || defeated;
   world_state_.current_wave = waves_.currentWave();
   world_state_.credits = economy_.getCredits();
   world_state_.lives = economy_.getLives();
@@ -223,4 +222,8 @@ void Simulation::logWave(int waveNumber) {
     effective_shots_[i] = 0;
     ghost_shots_[i] = 0;
   }
+}
+
+bool Simulation::reachedWaveLimit() const {
+  return waves_.allWavesComplete() || waves_.currentWave() > config_.maxWaves;
 }
