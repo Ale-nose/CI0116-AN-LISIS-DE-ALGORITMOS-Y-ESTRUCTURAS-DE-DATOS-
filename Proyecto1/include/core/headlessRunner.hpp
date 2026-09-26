@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "Cliargs.hpp"

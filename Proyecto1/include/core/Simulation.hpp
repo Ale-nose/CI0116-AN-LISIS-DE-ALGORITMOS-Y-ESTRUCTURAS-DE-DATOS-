@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <cstdint>
@@ -37,7 +38,7 @@ struct WorldState {
 struct Stats {
   std::uint64_t ticks_run = 0;      ///< Total processed ticks.
   std::uint64_t simulated_ms = 0;   ///< ticks_run * MS_PER_TICK
-  std::uint64_t shots_fired = 0;    ///< Successful tower shots across all slots.
+  std::uint64_t shots_fired = 0;    ///< Successful tower shots across all slots
   std::uint64_t total_steps = 0;    ///< Steps consumed across all slots.
   int waves_completed = 0;          ///< Waves fully finished spawning.
 };
@@ -132,9 +133,11 @@ class Simulation {
   WaveManager waves_;
   Economy economy_;
 
-  Grid grid_;                          ///< Spatial grid structure representing the map layout.
-  RouteData route_;                    ///< Pathfinding route data used by enemies to reach the base.
-  std::vector<Enemy> active_enemies_;  ///< List of active enemies currently spawned on the map.
+  Grid grid_;          ///< Spatial grid structure representing the map layout.
+  // Pathfinding route data used by enemies to reach the base.
+  RouteData route_;
+  // List of active enemies currently spawned on the map.
+  std::vector<Enemy> active_enemies_;
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;

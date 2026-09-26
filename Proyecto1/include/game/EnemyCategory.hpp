@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <cstddef>

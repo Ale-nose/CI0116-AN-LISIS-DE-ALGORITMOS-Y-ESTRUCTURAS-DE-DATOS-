@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <vector>
@@ -19,21 +19,21 @@ class HashTableRegistry : public ITargetRegistry {
     EnemyId id;  ///< Enemy identifier.
     Key key;     ///< Hashing key (== id in this project).
   };
-  
+
   static constexpr double kMaxLoadFactor = 0.75;  ///< Rehash threshold.
-  
+
   /// @brief Maps a key to its bucket index.
   int bucketIndex(Key key) const;
-  
+
   /// @brief Whether inserting one more entry would exceed kMaxLoadFactor.
   bool loadFactorTooHigh() const;
-  
+
   /**
    * @brief Doubles the bucket count and re-inserts every element.
    * @return Steps spent (one per element moved), like growing a dynamic array.
    */
   int rehash();
-  
+
   std::vector<std::vector<Entry>> buckets;  ///< One chain per bucket.
   int count;                                ///< Number of stored entries.
 

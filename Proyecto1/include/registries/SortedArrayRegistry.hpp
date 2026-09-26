@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "TargetRegistry.hpp"
@@ -16,24 +16,24 @@ class SortedArrayRegistry : public ITargetRegistry {
     EnemyId id;  ///< Enemy identifier.
     Key key;     ///< Ordering key (== id in this project).
   };
- 
+
   /// @brief Result of a binary search.
   struct SearchResult {
     int index;   ///< Index of the key, or where it should be inserted.
     bool found;  ///< Whether the key was actually present.
     int steps;   ///< Steps spent searching.
   };
- 
+
   /// @brief Doubles capacity and copies every element over.
   void grow();
- 
+
   /**
    * @brief Binary search for a key.
    * @param key Key to search for.
    * @return Index (found or insertion point), found flag, and steps spent.
    */
   SearchResult binarySearch(Key key) const;
- 
+
   Entry* data;   ///< Backing storage, kept sorted by key.
   int capacity;  ///< Allocated slots.
   int count;     ///< Slots actually in use.

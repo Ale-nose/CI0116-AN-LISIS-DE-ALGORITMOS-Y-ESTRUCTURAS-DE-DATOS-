@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "SortedArrayRegistry.hpp"
 
 SortedArrayRegistry::SortedArrayRegistry()
@@ -19,7 +19,8 @@ void SortedArrayRegistry::grow() {
   capacity = newCapacity;
 }
 
-SortedArrayRegistry::SearchResult SortedArrayRegistry::binarySearch(Key key) const {
+SortedArrayRegistry::SearchResult SortedArrayRegistry::binarySearch(
+  Key key) const {
   int steps = 0;
   int low = 0;
   int high = count - 1;

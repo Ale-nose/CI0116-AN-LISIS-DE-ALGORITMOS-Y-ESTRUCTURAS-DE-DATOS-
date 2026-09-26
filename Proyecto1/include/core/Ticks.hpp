@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 #include <cstdint>
 #include <random>
@@ -15,21 +16,24 @@ constexpr int SLOTS             = 8;
  * 
  */
 class Ticks {
-public:
-    explicit Ticks(std::uint32_t seed); // usamos ints de 32 para que el rgn sea determinista, si usaramos un int normal no se asegura esto
+ public:
+  // usamos ints de 32 para que el rgn sea determinista,
+  // si usaramos un int normal no se asegura esto
+  explicit Ticks(std::uint32_t seed);
 
-    void advance(int elapsed_ms);  // llamado desde afuera con el tiempo real transcurrido
-    void tick();                   // un tick de simulación
-    bool over() const;
+  // llamado desde afuera con el tiempo real transcurrido
+  void advance(int elapsed_ms);
+  void tick();                   // un tick de simulación
+  bool over() const;
 
-private:
-    std::mt19937 rng_;
-    int accumulator_ms_ = 0;
-    int busy_ticks_[SLOTS] = {0};
-    bool game_over_ = false;
+ private:
+  std::mt19937 rng_;
+  int accumulator_ms_ = 0;
+  int busy_ticks_[SLOTS] = {0};
+  bool game_over_ = false;
 
-    // ceil(steps / STEPS_PER_TICK)
-    static int ticksToBlock(int steps) {
-        return (steps + STEPS_PER_TICK - 1) / STEPS_PER_TICK;
-    }
+  // ceil(steps / STEPS_PER_TICK)
+  static int ticksToBlock(int steps) {
+    return (steps + STEPS_PER_TICK - 1) / STEPS_PER_TICK;
+  }
 };

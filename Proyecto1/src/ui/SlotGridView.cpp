@@ -1,8 +1,7 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "SlotGridView.hpp"
-
-#include <algorithm>
 #include <QGridLayout>
-
+#include <algorithm>
 #include "Tower.hpp"
 
 SlotGridView::SlotGridView(QWidget* parent) : QWidget(parent) {

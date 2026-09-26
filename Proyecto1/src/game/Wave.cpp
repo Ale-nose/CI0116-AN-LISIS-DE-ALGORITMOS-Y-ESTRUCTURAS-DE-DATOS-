@@ -1,8 +1,7 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "Wave.hpp"
-#include "EnemyIdFactory.hpp"
-
 #include <cmath>
+#include "EnemyIdFactory.hpp"
 
 int WaveComposition::total() const {
   int sum = 0;
@@ -25,7 +24,7 @@ WaveComposition buildComposition(int totalSize) {
   for (std::size_t i = 0; i < kCategoryCount; ++i) {
     // Spread the remainder across the first few categories so the
     // total still adds up exactly to totalSize.
-    composition.perCategory[i] = 
+    composition.perCategory[i] =
       base + (static_cast<int>(i) < remainder ? 1 : 0);
   }
   return composition;
@@ -69,7 +68,7 @@ std::optional<Enemy> WaveManager::tick(int initialDistance,
   EnemyId id = generateEnemyId(category, totalSpawnedCount, hiveBucketCount);
   ++totalSpawnedCount;
 
-  // TODO: still missing the module that tracks live enemies —
+  // TODO(Kevin): still missing the module that tracks live enemies —
   // WaveManager now creates the Enemy directly, but has nowhere to hand
   // it off itself; whoever calls tick() must store the returned Enemy.
   return Enemy(id, category, initialDistance);

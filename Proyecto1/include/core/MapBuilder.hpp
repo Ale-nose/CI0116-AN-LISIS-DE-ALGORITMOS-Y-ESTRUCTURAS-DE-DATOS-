@@ -1,10 +1,9 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
-
-#include "Grid.hpp"
 
 #include <vector>
 #include <utility>
+#include "Grid.hpp"
 
 using Point = std::pair<int, int>;
 

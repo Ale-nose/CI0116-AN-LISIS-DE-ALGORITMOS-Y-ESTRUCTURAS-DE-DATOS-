@@ -1,7 +1,5 @@
-#include <QVBoxLayout>
-
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "MainWindow.hpp"
-
 #include <QVBoxLayout>
 #include <QWidget>
 #include "UpgradeDialog.hpp"
@@ -58,7 +56,7 @@ void MainWindow::onSlotClicked(int slotIndex) {
   }
 
   if (!simulation_.purchaseCore(slotIndex, *chosen)) {
-    return;  // shouldn't happen: unaffordable options are disabled in the dialog
+    return;  // shouldn't happen: unaffordable options are disabled in dialog
   }
 
   slotGrid_->refresh(simulation_.slotManager());

@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "HudPanel.hpp"
 
 #include <QHBoxLayout>
@@ -27,8 +27,10 @@ HudPanel::HudPanel(QWidget* parent) : QFrame(parent) {
 void HudPanel::refresh(const WorldState& state) {
   creditsLabel_->setText(QString("Credits: %1").arg(state.credits));
   livesLabel_->setText(QString("Lives: %1").arg(state.lives));
-  waveLabel_->setText(QString("Wave: %1/%2").arg(state.current_wave).arg(TOTAL_WAVES));
-  compositionLabel_->setText("Next wave: " + formatComposition(state.next_wave_composition));
+  waveLabel_->setText(
+    QString("Wave: %1/%2").arg(state.current_wave).arg(TOTAL_WAVES));
+  compositionLabel_->setText(
+    "Next wave: " + formatComposition(state.next_wave_composition));
 }
 
 QString HudPanel::formatComposition(const WaveComposition& composition) {
@@ -37,7 +39,8 @@ QString HudPanel::formatComposition(const WaveComposition& composition) {
     if (i > 0) {
       text += ", ";
     }
-    text += QString("%1 %2").arg(composition.perCategory[i]).arg(kCategoryNames[i]);
+    text +=
+      QString("%1 %2").arg(composition.perCategory[i]).arg(kCategoryNames[i]);
   }
   return text;
 }

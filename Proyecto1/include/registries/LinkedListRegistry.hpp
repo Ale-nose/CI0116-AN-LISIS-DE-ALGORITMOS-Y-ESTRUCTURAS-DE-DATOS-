@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "TargetRegistry.hpp"
@@ -17,7 +17,7 @@ class LinkedListRegistry : public ITargetRegistry {
     Key key;      ///< Ordering key (== id in this project).
     Node* next;   ///< Next node, or nullptr at the tail.
   };
-  
+
   Node* head;         ///< First node, or nullptr if empty.
   size_t count;       ///< Number of stored entries.
 

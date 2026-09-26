@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <QMainWindow>
@@ -6,28 +7,27 @@
 #include "MapView.hpp"
 #include "Simulation.hpp"
 #include "SlotGridView.hpp"
-#include "HudPanel.hpp"
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+  Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget* parent = nullptr);
+ public:
+  explicit MainWindow(QWidget* parent = nullptr);
 
-private Q_SLOTS:
+  private Q_SLOTS:
     void onTick();
 
     // Section 5.3 — opens the upgrade dialog for the clicked slot; on
     // acceptance, purchases and installs the chosen core.
     void onSlotClicked(int slotIndex);
 
-private:
-    static constexpr int REFRESH_INTERVAL_MS = 100;  // UI refresh rate, not the game's fixed tick
+ private:
+  // UI refresh rate, not the game's fixed tick
+  static constexpr int REFRESH_INTERVAL_MS = 100;
 
-    Simulation simulation_;
-    HudPanel* hud_ = nullptr;
-    MapView* mapView_ = nullptr;
-    SlotGridView* slotGrid_ = nullptr;
-    QTimer* timer_ = nullptr;
+  Simulation simulation_;
+  HudPanel* hud_ = nullptr;
+  MapView* mapView_ = nullptr;
+  SlotGridView* slotGrid_ = nullptr;
+  QTimer* timer_ = nullptr;
 };
