@@ -13,18 +13,19 @@ LinkedListRegistry::~LinkedListRegistry() {
 }
 
 int LinkedListRegistry::insert(EnemyId id, Key k) {
+  const int before = counter_.total();
   head = new Node{id, k, head};
+  counter_.pointerHop();  // attach the new node at the front
   ++count;
-  return 1;
+  return counter_.total() - before;
 }
 
 int LinkedListRegistry::erase(EnemyId id) {
-  int steps = 0;
+  const int before = counter_.total();
   Node* previous = nullptr;
   Node* current = head;
 
   while (current != nullptr) {
-    ++steps;
     counter_.comparison();
     if (current->id == id) {
       if (previous == nullptr) {
@@ -32,24 +33,25 @@ int LinkedListRegistry::erase(EnemyId id) {
       } else {
         previous->next = current->next;
       }
-      ++steps;
+      counter_.pointerHop();  // splice the node out
       delete current;
       --count;
-      return steps;
+      break;
     }
     previous = current;
     counter_.pointerHop();
     current = current->next;
   }
-  return steps;
+  return counter_.total() - before;
 }
 
 int LinkedListRegistry::query(EnemyId& out) const {
-  if (head == nullptr) {
-    return 0;
+  const int before = counter_.total();
+  if (head != nullptr) {
+    counter_.pointerHop();  // native answer: peek the head, O(1)
+    out = head->id;
   }
-  out = head->id;
-  return 1;  // native answer: peek the head, O(1)
+  return counter_.total() - before;
 }
 
 size_t LinkedListRegistry::size() const {

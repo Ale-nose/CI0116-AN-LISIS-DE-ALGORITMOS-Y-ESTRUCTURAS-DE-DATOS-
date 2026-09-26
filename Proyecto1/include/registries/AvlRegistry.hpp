@@ -41,28 +41,24 @@ class AvlRegistry : public ITargetRegistry {
    * @param node  Subtree root to insert into.
    * @param id    Enemy identifier.
    * @param k     Key to insert.
-   * @param steps Accumulator, incremented as work happens.
    * @return New subtree root (may differ from `node` if a rotation occurred).
    */
-  Node* insertRec(Node* node, EnemyId id, Key k, int& steps);
+  Node* insertRec(Node* node, EnemyId id, Key k);
 
   /**
    * @brief Finds the minimum-key node of a subtree.
    * @param node  Subtree to search (must not be nullptr).
-   * @param steps Accumulator, one step per node visited.
    * @return The leftmost (minimum) node.
    */
-  Node* findMin(Node* node, int& steps) const;
+  Node* findMin(Node* node) const;
 
   /**
    * @brief Recursive erase with rebalancing on the way back up.
    * @param node  Subtree root to erase from.
    * @param id    Enemy identifier to remove.
-   * @param steps Accumulator, incremented as work happens.
-   * @param found Set to true if the id was actually present.
    * @return New subtree root (may differ from `node`).
    */
-  Node* eraseRec(Node* node, EnemyId id, int& steps, bool& found);
+  Node* eraseRec(Node* node, EnemyId id);
 
   /// @brief Recursively frees a subtree.
   void destroy(Node* node);

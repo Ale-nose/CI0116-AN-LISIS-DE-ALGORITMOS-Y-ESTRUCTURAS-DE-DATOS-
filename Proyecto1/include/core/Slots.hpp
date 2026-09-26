@@ -59,6 +59,15 @@ class SlotManager {
     }
   }
 
+  // Section 6.1 — hands out (and resets) the metrics this slot's tower
+  // gathered during the wave that just ended. Empty slots report zeros.
+  TowerWaveStats takeWaveStats(int slotIndex) {
+    if (!towers_[slotIndex]) {
+      return TowerWaveStats{};
+    }
+    return towers_[slotIndex]->takeWaveStats();
+  }
+
   struct SlotTickResult {
       bool fired = false;
       EnemyId target = -1;

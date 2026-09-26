@@ -15,3 +15,7 @@ std::unique_ptr<ITargetRegistry> createCore(CoreType type);
 // Maps a CLI-friendly name (e.g. "avl", "hash_table") to its CoreType.
 // Returns std::nullopt if the name isn't recognized.
 std::optional<CoreType> coreTypeFromName(const std::string& name);
+
+// Inverse of coreTypeFromName(): the CLI-friendly name of a CoreType,
+// used as the structure column of the combat log (section 6.1).
+std::string coreTypeToName(CoreType type);

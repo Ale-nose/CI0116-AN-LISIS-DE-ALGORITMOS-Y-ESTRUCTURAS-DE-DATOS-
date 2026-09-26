@@ -61,3 +61,25 @@ std::optional<CoreType> coreTypeFromName(const std::string& name) {
 
   return std::nullopt;
 }
+
+std::string coreTypeToName(CoreType type) {
+  switch (type) {
+    case CoreType::LinkedList:
+      return "linked_list";
+    case CoreType::SortedList:
+      return "sorted_list";
+    case CoreType::DynamicArray:
+      return "dynamic_array";
+    case CoreType::SortedArray:
+      return "sorted_array";
+    case CoreType::Bst:
+      return "bst";
+    case CoreType::Avl:
+      return "avl";
+    case CoreType::MinHeap:
+      return "min_heap";
+    case CoreType::HashTable:
+      return "hash_table";
+  }
+  return "unknown";
+}

@@ -5,10 +5,9 @@
 
 MinHeapRegistry::MinHeapRegistry() : count(0) {}
 
-int MinHeapRegistry::siftUp(int index, int& steps) {
+int MinHeapRegistry::siftUp(int index) {
   while (index > 0) {
     int parent = (index - 1) / 2;
-    ++steps;
     counter_.comparison();
     if (data[parent].key <= data[index].key) break;
 
@@ -19,19 +18,17 @@ int MinHeapRegistry::siftUp(int index, int& steps) {
   return index;
 }
 
-int MinHeapRegistry::siftDown(int index, int& steps) {
+int MinHeapRegistry::siftDown(int index) {
   while (true) {
     int left = 2 * index + 1;
     int right = 2 * index + 2;
     int smallest = index;
 
     if (left < count) {
-      ++steps;
       counter_.comparison();
       if (data[left].key < data[smallest].key) smallest = left;
     }
     if (right < count) {
-      ++steps;
       counter_.comparison();
       if (data[right].key < data[smallest].key) smallest = right;
     }
@@ -44,18 +41,19 @@ int MinHeapRegistry::siftDown(int index, int& steps) {
 }
 
 int MinHeapRegistry::insert(EnemyId id, Key k) {
+  const int before = counter_.total();
   data.push_back(Entry{id, k});
+  counter_.shift();  // the append write
   ++count;
-  int steps = 1;  // the append itself
-  siftUp(count - 1, steps);
-  return steps;
+  siftUp(count - 1);
+  return counter_.total() - before;
 }
 
 int MinHeapRegistry::erase(EnemyId id) {
-  int steps = 0;
+  const int before = counter_.total();
   int index = -1;
   for (int i = 0; i < count; ++i) {
-    ++steps;  // linear search: a min-heap has no order besides "root is min"
+    // Linear search: a min-heap has no order besides "root is min".
     counter_.comparison();
     if (data[i].id == id) {
       index = i;
@@ -63,30 +61,30 @@ int MinHeapRegistry::erase(EnemyId id) {
     }
   }
   if (index == -1) {
-    return steps;
+    return counter_.total() - before;
   }
 
   data[index] = data[count - 1];
   data.pop_back();
   --count;
-  ++steps;  // move the last element into the hole
-  counter_.shift();
+  counter_.shift();  // move the last element into the hole
 
   if (index < count) {
-    int afterUp = siftUp(index, steps);
+    int afterUp = siftUp(index);
     if (afterUp == index) {
-      siftDown(index, steps);
+      siftDown(index);
     }
   }
-  return steps;
+  return counter_.total() - before;
 }
 
 int MinHeapRegistry::query(EnemyId& out) const {
-  if (count == 0) {
-    return 0;
+  const int before = counter_.total();
+  if (count > 0) {
+    counter_.pointerHop();  // native answer: the root is the true minimum, O(1)
+    out = data[0].id;
   }
-  out = data[0].id;
-  return 1;  // native answer: the root is the true minimum, O(1)
+  return counter_.total() - before;
 }
 
 size_t MinHeapRegistry::size() const {
