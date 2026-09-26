@@ -24,46 +24,82 @@ void Tower::enqueueErase(EnemyId id) {
 }
 
 bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut) {
-  if (stepsUsedOut) {
-    *stepsUsedOut = 0;
-  }
+  // Section 2.3 — the tower earns STEPS_PER_TICK steps every tick. A
+  // negative credit is debt left by an operation that cost more than
+  // the budget it had: the tower stays blocked until it is paid off.
+  credit_ += STEPS_PER_TICK;
 
-  if (busy_ticks_ > 0) {
-    --busy_ticks_;
-    sampleEndOfTick();
-    return false;  // still paying for a previous operation
-  }
-
-  int steps = 0;
+  int stepsThisTick = 0;
   bool fired = false;
 
-  // The registry's StepCounter is cumulative; snapshot it so only the
-  // steps of this tick's operation are added to the wave breakdown.
+  // Spend the budget: maintenance first (FIFO); once the queue is empty,
+  // at most one shot. Cheap operations let several run in one tick.
+  while (credit_ > 0) {
+    if (!pending_.empty()) {
+      MaintenanceOp op = pending_.front();
+      pending_.pop();
+      int steps = runMaintenance(op);
+      credit_ -= steps;
+      stepsThisTick += steps;
+    } else if (!fired && registry_->size() > 0) {
+      // An empty registry has nothing to shoot at, so no shot then.
+      int steps = runQuery(firedTarget);
+      credit_ -= steps;
+      stepsThisTick += steps;
+      fired = true;
+    } else {
+      break;  // nothing left to do this tick
+    }
+  }
+
+  // Unused budget doesn't carry over; debt does.
+  if (credit_ > 0) {
+    credit_ = 0;
+  }
+
+  if (stepsUsedOut) {
+    *stepsUsedOut = stepsThisTick;
+  }
+
+  sampleEndOfTick();
+  return fired;
+}
+
+int Tower::runMaintenance(const MaintenanceOp& op) {
+  // The registry's StepCounter is cumulative; snapshot it so only this
+  // operation's steps are added to the wave breakdown.
   StepCounter before = registry_->stepBreakdown();
   auto start = std::chrono::steady_clock::now();
 
-  if (!pending_.empty()) {
-    MaintenanceOp op = pending_.front();
-    pending_.pop();
-    if (op.type == MaintOpType::Insert) {
-      steps = registry_->insert(op.id, *op.key);
-      ++wave_.inserts;
-      wave_.insertSteps += static_cast<std::uint64_t>(steps);
-    } else {
-      steps = registry_->erase(op.id);
-      ++wave_.erases;
-      wave_.eraseSteps += static_cast<std::uint64_t>(steps);
-    }
-  } else if (registry_->size() > 0) {
-    // An empty registry has nothing to shoot at: querying it still
-    // costs 0 steps and leaves firedTarget untouched, so don't count
-    // it as a shot.
-    steps = registry_->query(firedTarget);
-    fired = true;
-    ++wave_.queries;
-    wave_.querySteps += static_cast<std::uint64_t>(steps);
+  int steps = 0;
+  if (op.type == MaintOpType::Insert) {
+    steps = registry_->insert(op.id, *op.key);
+    ++wave_.inserts;
+    wave_.insertSteps += static_cast<std::uint64_t>(steps);
+  } else {
+    steps = registry_->erase(op.id);
+    ++wave_.erases;
+    wave_.eraseSteps += static_cast<std::uint64_t>(steps);
   }
 
+  recordOperation(before, start);
+  return steps;
+}
+
+int Tower::runQuery(EnemyId& firedTarget) {
+  StepCounter before = registry_->stepBreakdown();
+  auto start = std::chrono::steady_clock::now();
+
+  int steps = registry_->query(firedTarget);
+  ++wave_.queries;
+  wave_.querySteps += static_cast<std::uint64_t>(steps);
+
+  recordOperation(before, start);
+  return steps;
+}
+
+void Tower::recordOperation(const StepCounter& before,
+    std::chrono::steady_clock::time_point start) {
   auto end = std::chrono::steady_clock::now();
   std::uint64_t elapsedNs = static_cast<std::uint64_t>(
     std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
@@ -71,16 +107,6 @@ bool Tower::tick(EnemyId& firedTarget, int* stepsUsedOut) {
   total_nanoseconds_ += elapsedNs;
   wave_.realNanoseconds += elapsedNs;
   addBreakdownDelta(before, registry_->stepBreakdown());
-
-  // ceil(steps / STEPS_PER_TICK) without <cmath>.
-  busy_ticks_ = (steps + STEPS_PER_TICK - 1) / STEPS_PER_TICK;
-
-  if (stepsUsedOut) {
-    *stepsUsedOut = steps;
-  }
-
-  sampleEndOfTick();
-  return fired;
 }
 
 TowerWaveStats Tower::takeWaveStats() {
@@ -104,6 +130,10 @@ void Tower::sampleEndOfTick() {
   ++wave_.ticks;
   if (size > wave_.maxSize) {
     wave_.maxSize = size;
+    // New peak for this wave: keep the registry's shape at this moment.
+    RegistryShape peak = registry_->shape();
+    wave_.peakHeight = peak.height;
+    wave_.peakBuckets = std::move(peak.bucketLengths);
   }
   wave_.sizeSum += static_cast<std::uint64_t>(size);
   if (pending > wave_.maxPending) {

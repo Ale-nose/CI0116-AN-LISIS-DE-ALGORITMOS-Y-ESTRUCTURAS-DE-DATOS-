@@ -1,14 +1,39 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "HashTableRegistry.hpp"
 
+#include <cstdint>
 #include <functional>
 #include <utility>
 
-HashTableRegistry::HashTableRegistry()
-  : buckets(kInitialBucketCount), count(0) {}
+namespace {
+
+/**
+ * @brief SplitMix64 finalizer: spreads every input bit over the whole
+ * output, so ids sharing low bits (like the Hive's multiples of a power
+ * of two) no longer share a bucket.
+ * @param x Value to mix (the library hash of a key).
+ * @return The mixed value.
+ */
+std::uint64_t mixBits(std::uint64_t x) {
+  x ^= x >> 30;
+  x *= 0xbf58476d1ce4e5b9ULL;
+  x ^= x >> 27;
+  x *= 0x94d049bb133111ebULL;
+  x ^= x >> 31;
+  return x;
+}
+
+}  // namespace
+
+HashTableRegistry::HashTableRegistry(HashMode mode)
+  : buckets(kInitialBucketCount), count(0), hashMode_(mode) {}
 
 int HashTableRegistry::bucketIndex(Key key) const {
-  return static_cast<int>(std::hash<Key>{}(key) % buckets.size());
+  std::uint64_t hash = std::hash<Key>{}(key);
+  if (hashMode_ == HashMode::Mixed) {
+    hash = mixBits(hash);
+  }
+  return static_cast<int>(hash % buckets.size());
 }
 
 bool HashTableRegistry::loadFactorTooHigh() const {
@@ -88,4 +113,13 @@ int HashTableRegistry::query(EnemyId& out) const {
 
 size_t HashTableRegistry::size() const {
   return static_cast<std::size_t>(count);
+}
+
+RegistryShape HashTableRegistry::shape() const {
+  RegistryShape snapshot;
+  snapshot.bucketLengths.reserve(buckets.size());
+  for (const std::vector<Entry>& chain : buckets) {
+    snapshot.bucketLengths.push_back(static_cast<int>(chain.size()));
+  }
+  return snapshot;
 }

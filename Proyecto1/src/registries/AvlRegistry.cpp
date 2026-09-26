@@ -179,3 +179,9 @@ int AvlRegistry::query(EnemyId& out) const {
 size_t AvlRegistry::size() const {
   return count;
 }
+
+RegistryShape AvlRegistry::shape() const {
+  RegistryShape snapshot;
+  snapshot.height = heightOf(root);  // AVL keeps heights in its nodes
+  return snapshot;
+}

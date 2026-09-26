@@ -5,16 +5,31 @@
 #include <string>
 #include "Wave.hpp"  // for TOTAL_WAVES
 
-// Section 4.2 — command-line contract:
-// overflow --headless --seed N --waves M --core <nombre> --out resultados.csv
+/**
+ * @brief Section 4.2 — parsed command line.
+ *
+ * Contract: overflow --headless --seed N --waves M --core <nombre>
+ * --out resultados.csv. Extra options for the report experiments
+ * (Topic 7): --hash, --only, --buckets-out and --ignore-defeat.
+ */
 struct CliArgs {
-  bool headless = false;
-  std::uint32_t seed = 0;
-  int waves = TOTAL_WAVES;
-  std::string core;
-  std::string outPath = "resultados.csv";
+  bool headless = false;       ///< Run without a window (--headless).
+  std::uint32_t seed = 0;      ///< Match seed (--seed).
+  int waves = TOTAL_WAVES;     ///< Last wave to play (--waves).
+  std::string core;            ///< Structure for every slot (--core).
+  std::string outPath = "resultados.csv";  ///< Combat log path (--out).
+  std::string hash = "default";  ///< Hash function: default|mixed (--hash).
+  std::string only;        ///< Only category to spawn; empty: all (--only).
+  std::string bucketsOut;  ///< Bucket log path; empty: none (--buckets-out).
+  bool ignoreDefeat = false;   ///< Keep playing at 0 lives (--ignore-defeat).
 };
 
-// Parses argv into outArgs. Returns false (and prints an error to stderr)
-// on a missing value or an unrecognized flag.
+/**
+ * @brief Parses the command line.
+ * @param argc Argument count, as received by main().
+ * @param argv Argument values, as received by main().
+ * @param outArgs Filled with every option found.
+ * @return false (after printing the reason to stderr) on a missing value
+ * or an unrecognized flag; true otherwise.
+ */
 bool parseCliArgs(int argc, char** argv, CliArgs& outArgs);

@@ -69,4 +69,19 @@ class BstRegistry : public ITargetRegistry {
   size_t size() const override;
 
   const StepCounter& stepBreakdown() const override { return counter_; }
+
+  /**
+   * @brief Report question 6 — current tree height. Diagnostic only,
+   * costs 0 steps.
+   * @return A shape whose height is the tree's (0 if empty).
+   */
+  RegistryShape shape() const override;
+
+ private:
+  /**
+   * @brief Height of a subtree, computed recursively.
+   * @param node Subtree root (nullptr for an empty subtree).
+   * @return Number of levels; 0 for nullptr.
+   */
+  static int subtreeHeight(const Node* node);
 };

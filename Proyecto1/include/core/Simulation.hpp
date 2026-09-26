@@ -5,6 +5,7 @@
 #include <bitset>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <vector>
 #include "CombatLog.hpp"
 #include "CorePrices.hpp"
@@ -21,7 +22,28 @@
  * @brief Configuration parameters needed to initialize Simulation
  */
 struct Config {
-  // ### Room for future match-setup knobs (Topic 3) beyond seed. ###
+  /**
+   * @brief Last wave to play (1..TOTAL_WAVES); the match ends after it.
+   */
+  int maxWaves = TOTAL_WAVES;
+
+  /**
+   * @brief Bucket function for every hash-table core (report question 5).
+   */
+  HashMode hashMode = HashMode::Default;
+
+  /**
+   * @brief If set, every wave is made only of this category (report
+   * experiments, questions 5 and 6); otherwise the normal even split.
+   */
+  std::optional<EnemyCategory> onlyCategory;
+
+  /**
+   * @brief Keep playing after lives run out (report experiments only):
+   * the match then ends only at maxWaves, so every structure is measured
+   * under the full load curve instead of stopping at its first defeat.
+   */
+  bool ignoreDefeat = false;
 };
 
 /**
@@ -51,6 +73,9 @@ class Simulation {
  public:
   /**
    * @brief Constructs the simulation engine.
+   * @param seed Match seed; decides the spawn order within each wave, so
+   * the same seed always replays the same match.
+   * @param cfg Match settings (wave limit, hash function, experiments).
    */
   Simulation(std::uint32_t seed, const Config& cfg);
 
@@ -148,33 +173,48 @@ class Simulation {
   Economy economy_;
 
   Grid grid_;          ///< Spatial grid structure representing the map layout.
-  // Pathfinding route data used by enemies to reach the base.
-  RouteData route_;
+  RouteData route_;    ///< Route enemies follow from entrance to base.
 
   /**
    * @brief An enemy on the map plus which slots currently see it, so
    * entering/leaving a radius can be turned into insert/erase ops.
    */
   struct TrackedEnemy {
-    Enemy enemy;
-    std::bitset<SlotManager::kSlotCount> inRange;
+    Enemy enemy;                                    ///< The enemy itself.
+    std::bitset<SlotManager::kSlotCount> inRange;   ///< Slots that see it.
   };
 
-  // Enemies currently on the map, keyed by id. std::map (not
-  // unordered_map) so iteration order — and therefore the whole
-  // match — is identical on every machine for the same seed.
+  /**
+   * @brief Enemies currently on the map, keyed by id. std::map (not
+   * unordered_map) so iteration order — and therefore the whole match —
+   * is identical on every machine for the same seed.
+   */
   std::map<EnemyId, TrackedEnemy> active_enemies_;
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;
 
+  /**
+   * @brief Whether the match already played its last wave: either all
+   * TOTAL_WAVES, or the shorter limit from Config::maxWaves.
+   * @return true once the last wave to play is finished.
+   */
+  bool reachedWaveLimit() const;
+
   int accumulator_ms_ = 0;  // Unprocessed real-time accumulator in ms.
 
-  // Section 6.1 — per-slot shot classification for the current wave.
+  /**
+   * @brief Section 6.1 — shots at live enemies, per slot, this wave.
+   */
   std::array<int, SlotManager::kSlotCount> effective_shots_{};
+
+  /**
+   * @brief Section 6.1 — shots at already dead enemies, per slot, this
+   * wave.
+   */
   std::array<int, SlotManager::kSlotCount> ghost_shots_{};
-  std::vector<CombatLogRecord> combat_log_;
-  bool final_wave_logged_ = false;
+  std::vector<CombatLogRecord> combat_log_;  ///< Rows produced so far.
+  bool final_wave_logged_ = false;  ///< Unfinished wave already logged.
 
   /**
    * @brief Moves every enemy along the route, expires Decoys, leaks the
@@ -186,12 +226,15 @@ class Simulation {
    * @brief Recomputes which slots see this enemy at its current path
    * cell, queueing an insert on each slot it entered and an erase on
    * each slot it left.
+   * @param id Enemy to update.
+   * @param tracked Its map entry; inRange is updated in place.
    */
   void updateRangeMembership(EnemyId id, TrackedEnemy& tracked);
 
   /**
    * @brief Takes an enemy off the map (killed, expired or leaked) and
    * queues an erase on every slot that was still tracking it.
+   * @param id Enemy to remove; no-op if it is not on the map.
    */
   void removeEnemy(EnemyId id);
 

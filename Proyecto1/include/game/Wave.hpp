@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <optional>
+#include <random>
 #include <vector>
 #include <cstdint>
 #include "Enemy.hpp"
@@ -12,8 +13,19 @@
 constexpr int TOTAL_WAVES = 20;
 constexpr int WAVE_BASE = 20;           // enemies in wave 1
 constexpr double WAVE_FACTOR = 1.3;     // growth per wave: base * factor^(w-1)
-// ticks between spawns during combat
+/**
+ * @brief Ticks between spawns during combat, for waves small enough to
+ * finish spawning within WAVE_MAX_SPAWN_TICKS at this pace.
+ */
 constexpr int WAVE_SPAWN_INTERVAL_TICKS = 10;
+
+/**
+ * @brief Longest a wave may take to finish spawning (20 s). Bigger waves
+ * are spread evenly over this window instead, several enemies per tick,
+ * so towers on busy slots really face many enemies at once (section 2.1)
+ * instead of a steady trickle of one every 10 ticks.
+ */
+constexpr int WAVE_MAX_SPAWN_TICKS = 1200;
 
 /// @brief How many enemies of each category make up a wave.
 struct WaveComposition {
@@ -33,9 +45,11 @@ int waveSize(int waveNumber);
 /**
  * @brief Splits a wave's total size evenly across the 5 categories.
  * @param totalSize Total enemy count for the wave (from waveSize()).
+ * @param onlyCategory If set, the whole wave goes to this category.
  * @return A composition whose categories sum to totalSize.
  */
-WaveComposition buildComposition(int totalSize);
+WaveComposition buildComposition(int totalSize,
+  std::optional<EnemyCategory> onlyCategory = std::nullopt);
 
 /// @brief Which of the two phases the current wave is in.
 enum class WavePhase {
@@ -58,12 +72,33 @@ class WaveManager {
 
   std::vector<EnemyCategory> spawnQueue;  // flattened, one entry per enemy
   size_t nextToSpawn;
-  int ticksSinceLastSpawn;
-  uint64_t totalSpawnedCount;
+  int combatTicks;           ///< Ticks elapsed in the current combat phase.
+  int spawnWindowTicks;      ///< Ticks this wave takes to finish spawning.
+  uint64_t totalSpawnedCount;  ///< Enemies spawned so far in the match.
+
+  /**
+   * @brief When set, every wave is made only of this category (report
+   * experiments, Topic 7); std::nullopt keeps the normal even split.
+   */
+  std::optional<EnemyCategory> onlyCategory_;
+
+  /**
+   * @brief Seeded RNG: decides the order enemies spawn within each wave,
+   * so matches with different seeds differ (bit-for-bit reproducible for
+   * the same seed).
+   */
+  std::mt19937 rng_;
 
  public:
-  /// @brief Starts at wave 1, in the construction phase.
-  WaveManager();
+  /**
+   * @brief Starts at wave 1, in the construction phase.
+   * @param seed Match seed; decides the spawn order within each wave.
+   * @param onlyCategory If set, every wave is made only of this category
+   *        (headless experiments for the report); otherwise waves are
+   *        split evenly across the 5 categories.
+   */
+  explicit WaveManager(std::uint32_t seed = 0,
+    std::optional<EnemyCategory> onlyCategory = std::nullopt);
 
   /// @brief The wave currently being previewed or fought (1-based).
   int currentWave() const { return currentWave_; }
@@ -84,11 +119,13 @@ class WaveManager {
 
   /**
    * @brief Advances the spawn timer by one simulation tick.
-   * @return The category to spawn this tick, or std::nullopt if no
-   *         spawn is due (either the timer hasn't elapsed yet, or the
-   *         whole wave has already finished spawning).
+   * @param initialDistance Route length every new enemy starts from.
+   * @param hiveIdStride Stride used to build colliding Hive ids.
+   * @return The enemies due this tick: none, one, or several (large
+   *         waves spread over WAVE_MAX_SPAWN_TICKS spawn several per
+   *         tick). Empty once the whole wave has spawned.
    */
-  std::optional<Enemy> tick(int initialDistance, std::size_t hiveBucketCount);
+  std::vector<Enemy> tick(int initialDistance, std::size_t hiveIdStride);
 
   /// @brief Whether every enemy in this wave has been handed off to tick().
   bool doneSpawning() const;

@@ -121,3 +121,18 @@ int BstRegistry::query(EnemyId& out) const {
 size_t BstRegistry::size() const {
   return count;
 }
+
+int BstRegistry::subtreeHeight(const Node* node) {
+  if (node == nullptr) {
+    return 0;
+  }
+  int left = subtreeHeight(node->left);
+  int right = subtreeHeight(node->right);
+  return 1 + (left > right ? left : right);
+}
+
+RegistryShape BstRegistry::shape() const {
+  RegistryShape snapshot;
+  snapshot.height = subtreeHeight(root);
+  return snapshot;
+}
