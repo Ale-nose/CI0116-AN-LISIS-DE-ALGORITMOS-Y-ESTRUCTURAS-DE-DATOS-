@@ -30,9 +30,9 @@ class HashTableRegistry : public ITargetRegistry {
 
   /**
    * @brief Doubles the bucket count and re-inserts every element.
-   * @return Steps spent (one per element moved), like growing a dynamic array.
+   * One shift per element moved, like growing a dynamic array.
    */
-  int rehash();
+  void rehash();
 
   std::vector<std::vector<Entry>> buckets;  ///< One chain per bucket.
   int count;                                ///< Number of stored entries.

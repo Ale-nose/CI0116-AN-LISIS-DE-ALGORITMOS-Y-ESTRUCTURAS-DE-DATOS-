@@ -1,24 +1,21 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "headlessRunner.hpp"
 
-#include <fstream>
 #include <iostream>
+#include "CombatLog.hpp"
 #include "CoreFactory.hpp"
 #include "Simulation.hpp"
 
 namespace {
 
-void writeStats(const Stats& stats, const std::string& outPath) {
-  std::ofstream out(outPath);
-  if (!out) {
-    std::cerr << "Could not open output file: " << outPath << "\n";
-    return;
-  }
-
-  out << "ticks_run,simulated_ms,shots_fired,total_steps,waves_completed\n";
-  out << stats.ticks_run << "," << stats.simulated_ms << ","
-    << stats.shots_fired << "," << stats.total_steps << ","
-    << stats.waves_completed << "\n";
+// Section 4.2 — one-line match summary on stdout. The detailed per-tower
+// per-wave data goes to the combat log file (--out), section 6.1.
+void printSummary(const Stats& stats) {
+  std::cout << "ticks_run=" << stats.ticks_run
+            << " simulated_ms=" << stats.simulated_ms
+            << " shots_fired=" << stats.shots_fired
+            << " total_steps=" << stats.total_steps
+            << " waves_completed=" << stats.waves_completed << "\n";
 }
 
 }  // namespace
@@ -47,7 +44,10 @@ int runHeadless(const CliArgs& args) {
     sim.tick();
   }
 
-  writeStats(sim.stats(), args.outPath);
+  printSummary(sim.stats());
+  if (!writeCombatLog(sim.combatLog(), args.seed, args.outPath)) {
+    return 1;
+  }
 
   return 0;
 }

@@ -37,52 +37,43 @@ AvlRegistry::Node* AvlRegistry::rotateLeft(Node* x) {
   return y;
 }
 
-AvlRegistry::Node* AvlRegistry::insertRec(
-  Node* node, EnemyId id, Key k, int& steps) {
+AvlRegistry::Node* AvlRegistry::insertRec(Node* node, EnemyId id, Key k) {
   if (node == nullptr) {
     ++count;
-    ++steps;
-    counter_.pointerHop();
+    counter_.pointerHop();  // attach the new leaf
     return new Node{id, k, nullptr, nullptr, 1};
   }
 
-  ++steps;  // comparison at this level
-  counter_.comparison();
+  counter_.comparison();  // comparison at this level
   if (k == node->key) {
     node->id = id;
     return node;
   } else if (k < node->key) {
-    node->left = insertRec(node->left, id, k, steps);
+    node->left = insertRec(node->left, id, k);
   } else {
-    node->right = insertRec(node->right, id, k, steps);
+    node->right = insertRec(node->right, id, k);
   }
 
   updateHeight(node);
   int balance = balanceFactor(node);
 
   if (balance > 1 && k < node->left->key) {          // left-left
-    ++steps;
     counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && k > node->right->key) {         // right-right
-    ++steps;
     counter_.rotation();
     return rotateLeft(node);
   }
   if (balance > 1 && k > node->left->key) {           // left-right
     node->left = rotateLeft(node->left);
-    ++steps;
     counter_.rotation();
-    ++steps;
     counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && k < node->right->key) {         // right-left
     node->right = rotateRight(node->right);
-    ++steps;
     counter_.rotation();
-    ++steps;
     counter_.rotation();
     return rotateLeft(node);
   }
@@ -90,74 +81,61 @@ AvlRegistry::Node* AvlRegistry::insertRec(
   return node;
 }
 
-AvlRegistry::Node* AvlRegistry::findMin(Node* node, int& steps) const {
+AvlRegistry::Node* AvlRegistry::findMin(Node* node) const {
   while (node->left != nullptr) {
-    ++steps;
     counter_.pointerHop();
     node = node->left;
   }
   return node;
 }
 
-AvlRegistry::Node* AvlRegistry::eraseRec(
-  Node* node, EnemyId id, int& steps, bool& found) {
+AvlRegistry::Node* AvlRegistry::eraseRec(Node* node, EnemyId id) {
   if (node == nullptr) {
     return nullptr;
   }
 
-  ++steps;
   counter_.comparison();
   if (id < node->key) {
-    node->left = eraseRec(node->left, id, steps, found);
+    node->left = eraseRec(node->left, id);
   } else if (id > node->key) {
-    node->right = eraseRec(node->right, id, steps, found);
+    node->right = eraseRec(node->right, id);
   } else {
-    found = true;
     if (node->left == nullptr || node->right == nullptr) {
       Node* child = (node->left != nullptr) ? node->left : node->right;
       delete node;
       --count;
-      return child;  // 0 or 1 child: splice it in directly
+      counter_.pointerHop();  // splice the child in directly
+      return child;
     }
 
     // Two children: pull up the in-order successor's data, then remove it.
-    Node* successor = findMin(node->right, steps);
+    counter_.pointerHop();
+    Node* successor = findMin(node->right);
     node->id = successor->id;
     node->key = successor->key;
-    bool dummy = false;
-    node->right = eraseRec(node->right, successor->id, steps, dummy);
-  }
-
-  if (node == nullptr) {
-    return nullptr;
+    node->right = eraseRec(node->right, successor->id);
   }
 
   updateHeight(node);
   int balance = balanceFactor(node);
 
   if (balance > 1 && balanceFactor(node->left) >= 0) {
-    ++steps;
     counter_.rotation();
     return rotateRight(node);
   }
   if (balance > 1 && balanceFactor(node->left) < 0) {
     node->left = rotateLeft(node->left);
-    ++steps;
     counter_.rotation();
-    ++steps;
     counter_.rotation();
     return rotateRight(node);
   }
   if (balance < -1 && balanceFactor(node->right) <= 0) {
-    ++steps;
     counter_.rotation();
     return rotateLeft(node);
   }
   if (balance < -1 && balanceFactor(node->right) > 0) {
     node->right = rotateRight(node->right);
-    ++steps;
     counter_.rotation();
-    ++steps;
     counter_.rotation();
     return rotateLeft(node);
   }
@@ -177,26 +155,25 @@ AvlRegistry::~AvlRegistry() {
 }
 
 int AvlRegistry::insert(EnemyId id, Key k) {
-  int steps = 0;
-  root = insertRec(root, id, k, steps);
-  return steps;
+  const int before = counter_.total();
+  root = insertRec(root, id, k);
+  return counter_.total() - before;
 }
 
 int AvlRegistry::erase(EnemyId id) {
-  int steps = 0;
-  bool found = false;
-  root = eraseRec(root, id, steps, found);
-  return steps;
+  const int before = counter_.total();
+  root = eraseRec(root, id);
+  return counter_.total() - before;
 }
 
 int AvlRegistry::query(EnemyId& out) const {
-  if (root == nullptr) {
-    return 0;
+  const int before = counter_.total();
+  if (root != nullptr) {
+    // Native answer: true minimum, O(log n) thanks to balance.
+    counter_.pointerHop();
+    out = findMin(root)->id;
   }
-  int steps = 1;
-  Node* minNode = findMin(root, steps);
-  out = minNode->id;
-  return steps;  // native answer: true minimum, O(log n) thanks to balance
+  return counter_.total() - before;
 }
 
 size_t AvlRegistry::size() const {

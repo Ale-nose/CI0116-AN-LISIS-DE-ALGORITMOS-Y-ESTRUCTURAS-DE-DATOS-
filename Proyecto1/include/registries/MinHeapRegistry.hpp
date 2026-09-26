@@ -22,23 +22,21 @@ class MinHeapRegistry : public ITargetRegistry {
   /**
    * @brief Moves data_[index] up while it's smaller than its parent.
    * @param index Starting index.
-   * @param steps Accumulator, one step per comparison.
    * @return The index where the element finally landed.
    */
-  int siftUp(int index, int& steps);
+  int siftUp(int index);
 
   /**
    * @brief Moves data_[index] down while it's bigger than a child.
    * @param index Starting index.
-   * @param steps Accumulator, one step per comparison.
    * @return The index where the element finally landed.
    */
-  int siftDown(int index, int& steps);
+  int siftDown(int index);
 
   std::vector<Entry> data;  ///< Backing array, kept in heap order.
   int count;                ///< Number of stored entries.
 
-  StepCounter counter_;
+  mutable StepCounter counter_;
 
  public:
   /// @brief Creates an empty registry.

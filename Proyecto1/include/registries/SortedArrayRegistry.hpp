@@ -21,7 +21,6 @@ class SortedArrayRegistry : public ITargetRegistry {
   struct SearchResult {
     int index;   ///< Index of the key, or where it should be inserted.
     bool found;  ///< Whether the key was actually present.
-    int steps;   ///< Steps spent searching.
   };
 
   /// @brief Doubles capacity and copies every element over.
@@ -30,7 +29,7 @@ class SortedArrayRegistry : public ITargetRegistry {
   /**
    * @brief Binary search for a key.
    * @param key Key to search for.
-   * @return Index (found or insertion point), found flag, and steps spent.
+   * @return Index (found or insertion point) and found flag.
    */
   SearchResult binarySearch(Key key) const;
 

@@ -26,7 +26,7 @@ class BstRegistry : public ITargetRegistry {
   Node* root;         ///< Tree root, or nullptr if empty.
   size_t count;  ///< Number of stored entries.
 
-  StepCounter counter_;
+  mutable StepCounter counter_;
 
  public:
   /// @brief Creates an empty registry.

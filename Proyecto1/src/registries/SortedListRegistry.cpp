@@ -13,13 +13,15 @@ SortedListRegistry::~SortedListRegistry() {
 }
 
 int SortedListRegistry::insert(EnemyId id, Key k) {
-  int steps = 0;
+  const int before = counter_.total();
   Node* previous = nullptr;
   Node* current = head;
 
-  while (current != nullptr && current->key < k) {
-    ++steps;
+  while (current != nullptr) {
     counter_.comparison();
+    if (!(current->key < k)) {
+      break;  // found the insertion point
+    }
     previous = current;
     counter_.pointerHop();
     current = current->next;
@@ -31,44 +33,48 @@ int SortedListRegistry::insert(EnemyId id, Key k) {
   } else {
     previous->next = node;
   }
-  ++steps;
+  counter_.pointerHop();  // link the new node in
   ++count;
-  return steps;
+  return counter_.total() - before;
 }
 
 int SortedListRegistry::erase(EnemyId id) {
-  int steps = 0;
+  const int before = counter_.total();
   Node* previous = nullptr;
   Node* current = head;
 
-  // Early exit: stop as soon as we pass where id's key would be.
-  while (current != nullptr && !(current->key > id)) {
-    ++steps;
+  while (current != nullptr) {
+    // One three-way comparison per node: past id's position (early
+    // exit), a match, or keep walking.
     counter_.comparison();
+    if (current->key > id) {
+      break;
+    }
     if (current->id == id) {
       if (previous == nullptr) {
         head = current->next;
       } else {
         previous->next = current->next;
       }
-      ++steps;
+      counter_.pointerHop();  // splice the node out
       delete current;
       --count;
-      return steps;
+      break;
     }
     previous = current;
     counter_.pointerHop();
     current = current->next;
   }
-  return steps;
+  return counter_.total() - before;
 }
 
 int SortedListRegistry::query(EnemyId& out) const {
-  if (head == nullptr) {
-    return 0;
+  const int before = counter_.total();
+  if (head != nullptr) {
+    counter_.pointerHop();  // native answer: head is the minimum, O(1)
+    out = head->id;
   }
-  out = head->id;
-  return 1;  // native answer: head is the minimum, O(1)
+  return counter_.total() - before;
 }
 
 size_t SortedListRegistry::size() const {
