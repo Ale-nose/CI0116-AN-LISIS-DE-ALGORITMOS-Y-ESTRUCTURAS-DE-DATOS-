@@ -15,8 +15,7 @@ bool HashTableRegistry::loadFactorTooHigh() const {
   return static_cast<double>(count + 1) / buckets.size() > kMaxLoadFactor;
 }
 
-int HashTableRegistry::rehash() {
-  int steps = 0;
+void HashTableRegistry::rehash() {
   std::vector<std::vector<Entry>> oldBuckets = std::move(buckets);
   buckets.assign(oldBuckets.size() * 2, {});
 
@@ -24,69 +23,67 @@ int HashTableRegistry::rehash() {
     for (Entry& entry : chain) {
       int index = bucketIndex(entry.key);
       buckets[index].push_back(entry);
-      ++steps;
       counter_.shift();  // moving an element during rehash
     }
   }
-  return steps;
 }
 
 int HashTableRegistry::insert(EnemyId id, Key k) {
-  int steps = 0;
+  const int before = counter_.total();
   if (loadFactorTooHigh()) {
-    steps += rehash();
+    rehash();
   }
 
   int index = bucketIndex(k);
-  ++steps;  // computing the hash
+  counter_.pointerHop();  // jump from the hash to its bucket
 
   std::vector<Entry>& chain = buckets[index];
   for (Entry& entry : chain) {
-    ++steps;
     counter_.comparison();
     if (entry.id == id) {
       entry.key = k;  // key already exists, just update
-      return steps;
+      return counter_.total() - before;
     }
   }
   chain.push_back(Entry{id, k});
-  ++steps;
+  counter_.shift();  // the append write into the chain
   ++count;
-  return steps;
+  return counter_.total() - before;
 }
 
 int HashTableRegistry::erase(EnemyId id) {
-  int steps = 0;
+  const int before = counter_.total();
   // id doubles as the key (spec: targeting is by id only), so the
   // bucket it hashed into is found the same way it was inserted.
   int index = bucketIndex(id);
-  ++steps;
+  counter_.pointerHop();  // jump from the hash to its bucket
 
   std::vector<Entry>& chain = buckets[index];
   for (auto it = chain.begin(); it != chain.end(); ++it) {
-    ++steps;
     counter_.comparison();
     if (it->id == id) {
+      // vector::erase shifts every later element one slot left.
+      for (auto later = it + 1; later != chain.end(); ++later) {
+        counter_.shift();
+      }
       chain.erase(it);
-      ++steps;
       --count;
-      return steps;
+      break;
     }
   }
-  return steps;  // not found: walked the whole bucket
+  return counter_.total() - before;
 }
 
 int HashTableRegistry::query(EnemyId& out) const {
-  int steps = 0;
+  const int before = counter_.total();
   for (const std::vector<Entry>& chain : buckets) {
-    ++steps;  // checking whether this bucket is empty
-    counter_.comparison();  // checking if bucket empty
+    counter_.comparison();  // checking whether this bucket is empty
     if (!chain.empty()) {
       out = chain.front().id;
-      return steps;
+      break;
     }
   }
-  return steps;  // registry is empty
+  return counter_.total() - before;
 }
 
 size_t HashTableRegistry::size() const {

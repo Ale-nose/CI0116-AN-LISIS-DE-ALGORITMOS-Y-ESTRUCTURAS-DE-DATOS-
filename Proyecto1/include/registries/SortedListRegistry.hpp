@@ -21,7 +21,7 @@ class SortedListRegistry : public ITargetRegistry {
   Node* head;         ///< First (smallest-key) node, or nullptr if empty.
   size_t count;       ///< Number of stored entries.
 
-  StepCounter counter_;
+  mutable StepCounter counter_;
 
  public:
   /// @brief Creates an empty registry.

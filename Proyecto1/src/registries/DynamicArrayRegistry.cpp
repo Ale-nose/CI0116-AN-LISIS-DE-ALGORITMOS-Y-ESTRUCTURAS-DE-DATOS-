@@ -9,13 +9,12 @@ DynamicArrayRegistry::~DynamicArrayRegistry() {
 }
 
 int DynamicArrayRegistry::insert(EnemyId id, Key k) {
-  int steps = 0;
+  const int before = counter_.total();
   if (count == capacity) {
     int newCapacity = capacity * 2;
     Entry* newData = new Entry[newCapacity];
     for (int i = 0; i < count; ++i) {
       newData[i] = data[i];
-      ++steps;  // one step per element copied while growing
       counter_.shift();  // copying during growth
     }
     delete[] data;
@@ -23,38 +22,36 @@ int DynamicArrayRegistry::insert(EnemyId id, Key k) {
     capacity = newCapacity;
   }
   data[count] = Entry{id, k};
+  counter_.shift();  // the append write
   ++count;
-  ++steps;  // the final write
-  return steps;
+  return counter_.total() - before;
 }
 
 int DynamicArrayRegistry::erase(EnemyId id) {
-  int steps = 0;
+  const int before = counter_.total();
   int index = -1;
   for (int i = 0; i < count; ++i) {
-    ++steps;
     counter_.comparison();
     if (data[i].id == id) {
       index = i;
       break;
     }
   }
-  if (index == -1) {
-    return steps;  // not found: walked the whole array
+  if (index != -1) {
+    data[index] = data[count - 1];  // swap with the last element
+    counter_.shift();
+    --count;
   }
-  data[index] = data[count - 1];  // swap with the last element
-  ++steps;
-  counter_.shift();  // the swap-with-last write
-  --count;
-  return steps;
+  return counter_.total() - before;
 }
 
 int DynamicArrayRegistry::query(EnemyId& out) const {
-  if (count == 0) {
-    return 0;
+  const int before = counter_.total();
+  if (count > 0) {
+    counter_.pointerHop();  // native answer: peek the last slot, O(1)
+    out = data[count - 1].id;
   }
-  out = data[count - 1].id;
-  return 1;  // native answer: peek the last slot, O(1)
+  return counter_.total() - before;
 }
 
 size_t DynamicArrayRegistry::size() const {

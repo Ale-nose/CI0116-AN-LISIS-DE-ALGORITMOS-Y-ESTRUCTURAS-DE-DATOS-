@@ -1,5 +1,7 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <queue>
@@ -18,6 +20,26 @@ struct MaintenanceOp {
   std::optional<Key> key;  // set only when type == Insert
 };
 
+// Section 6.1 — everything the combat log needs about one tower during
+// one wave. Filled by Tower::tick() and handed out (and reset) by
+// Tower::takeWaveStats() when the wave ends.
+struct TowerWaveStats {
+  int ticks = 0;                   ///< Ticks this tower existed in the wave.
+  std::size_t maxSize = 0;         ///< Largest registry size seen.
+  std::uint64_t sizeSum = 0;       ///< Sum of per-tick sizes (for the mean).
+  int maxPending = 0;              ///< Longest maintenance queue seen.
+  std::uint64_t pendingSum = 0;    ///< Sum of per-tick queue lengths.
+  int emptyQueueTicks = 0;         ///< Ticks that ended with an empty queue.
+  int inserts = 0;                 ///< Insert operations executed.
+  int erases = 0;                  ///< Erase operations executed.
+  int queries = 0;                 ///< Query operations executed (shots).
+  std::uint64_t insertSteps = 0;   ///< Steps returned by insert().
+  std::uint64_t eraseSteps = 0;    ///< Steps returned by erase().
+  std::uint64_t querySteps = 0;    ///< Steps returned by query().
+  StepCounter breakdown;           ///< Per-category steps during the wave.
+  std::uint64_t realNanoseconds = 0;  ///< Real time spent inside operations.
+};
+
 // Within each tick, a FREE tower takes exactly ONE pending maintenance
 // operation if any exist; otherwise it fires a query. It computes the
 // step cost and becomes blocked for ceil(cost / STEPS_PER_TICK) ticks.
@@ -33,9 +55,7 @@ class Tower {
   void installRegistry(std::unique_ptr<ITargetRegistry> registry);
 
   // Called by Simulation when an enemy enters range, to schedule an
-  // insert for this tower's core. key is the value this core indexes
-  // by (identifier, distance, or life — same value as id when the
-  // core is keyed by identifier).
+  // insert for this tower's core.
   void enqueueInsert(EnemyId id, Key key);
 
   // Called by Simulation when an enemy leaves range or dies, to
@@ -51,7 +71,7 @@ class Tower {
   // Returns true and sets firedTarget only when a shot was taken THIS
   // tick (a maintenance tick or a blocked tick never fires).
   // stepsUsedOut, if non-null, receives the steps spent this tick (0 if
-  // the tower was blocked and did nothing), for the combat log.
+  // the tower was blocked and did nothing).
   bool tick(EnemyId& firedTarget, int* stepsUsedOut = nullptr);
 
   bool isBusy() const {
@@ -71,11 +91,30 @@ class Tower {
     return static_cast<int>(pending_.size());
   }
 
-  std::uint64_t totalMicroseconds() const { return total_microseconds_; }
+  // Total real time spent inside registry operations since the tower
+  // was built. Accumulated in nanoseconds so single fast operations
+  // don't truncate to 0 us.
+  std::uint64_t totalMicroseconds() const {
+    return total_nanoseconds_ / kNanosecondsPerMicrosecond;
+  }
+
+  // Section 6.1 — metrics gathered since the last call (i.e. during the
+  // wave that just ended). Resets them so the next wave starts clean.
+  TowerWaveStats takeWaveStats();
 
  private:
+  static constexpr std::uint64_t kNanosecondsPerMicrosecond = 1000;
+
+  // Adds the per-category steps spent between two snapshots of the
+  // registry's cumulative StepCounter to this wave's breakdown.
+  void addBreakdownDelta(const StepCounter& before, const StepCounter& after);
+
+  // Samples registry size and queue length at the end of a tick.
+  void sampleEndOfTick();
+
   std::unique_ptr<ITargetRegistry> registry_;
   std::queue<MaintenanceOp> pending_;
   int busy_ticks_ = 0;
-  std::uint64_t total_microseconds_ = 0;
+  std::uint64_t total_nanoseconds_ = 0;
+  TowerWaveStats wave_;
 };

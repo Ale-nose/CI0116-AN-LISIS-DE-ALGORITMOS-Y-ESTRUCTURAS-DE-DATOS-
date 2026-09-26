@@ -1,8 +1,12 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
+#include <array>
+#include <bitset>
 #include <cstdint>
+#include <map>
 #include <vector>
+#include "CombatLog.hpp"
 #include "CorePrices.hpp"
 #include "Slots.hpp"
 #include "Ticks.hpp"
@@ -125,6 +129,16 @@ class Simulation {
     return economy_;
   }
 
+  /**
+   * @brief Section 6.1 — every combat log row produced so far: one per
+   * occupied slot per finished wave (plus the unfinished wave, once the
+   * match is over).
+   * @return Const reference to the accumulated records.
+   */
+  const std::vector<CombatLogRecord>& combatLog() const {
+    return combat_log_;
+  }
+
  private:
   Config config_;
   Ticks ticks_engine_;
@@ -136,13 +150,57 @@ class Simulation {
   Grid grid_;          ///< Spatial grid structure representing the map layout.
   // Pathfinding route data used by enemies to reach the base.
   RouteData route_;
-  // List of active enemies currently spawned on the map.
-  std::vector<Enemy> active_enemies_;
+
+  /**
+   * @brief An enemy on the map plus which slots currently see it, so
+   * entering/leaving a radius can be turned into insert/erase ops.
+   */
+  struct TrackedEnemy {
+    Enemy enemy;
+    std::bitset<SlotManager::kSlotCount> inRange;
+  };
+
+  // Enemies currently on the map, keyed by id. std::map (not
+  // unordered_map) so iteration order — and therefore the whole
+  // match — is identical on every machine for the same seed.
+  std::map<EnemyId, TrackedEnemy> active_enemies_;
 
   std::uint64_t shots_fired_ = 0;
   std::uint64_t total_steps_ = 0;
 
   int accumulator_ms_ = 0;  // Unprocessed real-time accumulator in ms.
+
+  // Section 6.1 — per-slot shot classification for the current wave.
+  std::array<int, SlotManager::kSlotCount> effective_shots_{};
+  std::array<int, SlotManager::kSlotCount> ghost_shots_{};
+  std::vector<CombatLogRecord> combat_log_;
+  bool final_wave_logged_ = false;
+
+  /**
+   * @brief Moves every enemy along the route, expires Decoys, leaks the
+   * ones that reach the base, and syncs each slot's radius membership.
+   */
+  void moveEnemies();
+
+  /**
+   * @brief Recomputes which slots see this enemy at its current path
+   * cell, queueing an insert on each slot it entered and an erase on
+   * each slot it left.
+   */
+  void updateRangeMembership(EnemyId id, TrackedEnemy& tracked);
+
+  /**
+   * @brief Takes an enemy off the map (killed, expired or leaked) and
+   * queues an erase on every slot that was still tracking it.
+   */
+  void removeEnemy(EnemyId id);
+
+  /**
+   * @brief Closes the combat log for a wave: appends one record per
+   * occupied slot and resets the per-wave counters.
+   * @param waveNumber 1-based wave being closed.
+   */
+  void logWave(int waveNumber);
 
   /**
    * @brief Syncs public WorldState with internal engine state: pulls the

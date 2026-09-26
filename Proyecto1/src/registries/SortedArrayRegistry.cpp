@@ -13,6 +13,7 @@ void SortedArrayRegistry::grow() {
   Entry* newData = new Entry[newCapacity];
   for (int i = 0; i < count; ++i) {
     newData[i] = data[i];
+    counter_.shift();  // copying during growth
   }
   delete[] data;
   data = newData;
@@ -21,29 +22,27 @@ void SortedArrayRegistry::grow() {
 
 SortedArrayRegistry::SearchResult SortedArrayRegistry::binarySearch(
   Key key) const {
-  int steps = 0;
   int low = 0;
   int high = count - 1;
 
   while (low <= high) {
-    ++steps;
-    counter_.comparison();
+    counter_.comparison();  // one three-way comparison per probe
 
     int mid = low + (high - low) / 2;
     if (data[mid].key == key) {
-      return {mid, true, steps};
+      return {mid, true};
     } else if (data[mid].key < key) {
       low = mid + 1;
     } else {
       high = mid - 1;
     }
   }
-  return {low, false, steps};
+  return {low, false};
 }
 
 int SortedArrayRegistry::insert(EnemyId id, Key k) {
+  const int before = counter_.total();
   SearchResult result = binarySearch(k);
-  int steps = result.steps;
 
   if (count == capacity) {
     grow();
@@ -51,38 +50,35 @@ int SortedArrayRegistry::insert(EnemyId id, Key k) {
 
   for (int i = count; i > result.index; --i) {
     data[i] = data[i - 1];
-    ++steps;  // one step per shifted element
-    counter_.shift();
+    counter_.shift();  // one step per shifted element
   }
 
   data[result.index] = Entry{id, k};
+  counter_.shift();  // the final write
   ++count;
-  ++steps;  // the final write
-  return steps;
+  return counter_.total() - before;
 }
 
 int SortedArrayRegistry::erase(EnemyId id) {
+  const int before = counter_.total();
   SearchResult result = binarySearch(id);
-  if (!result.found) {
-    return result.steps;  // just the search, nothing else to do
+  if (result.found) {
+    for (int i = result.index; i < count - 1; ++i) {
+      data[i] = data[i + 1];
+      counter_.shift();  // one step per shifted element
+    }
+    --count;
   }
-
-  int steps = result.steps;
-  for (int i = result.index; i < count - 1; ++i) {
-    data[i] = data[i + 1];
-    ++steps;  // one step per shifted element
-    counter_.shift();
-  }
-  --count;
-  return steps;
+  return counter_.total() - before;
 }
 
 int SortedArrayRegistry::query(EnemyId& out) const {
-  if (count == 0) {
-    return 0;
+  const int before = counter_.total();
+  if (count > 0) {
+    counter_.pointerHop();  // native answer: index 0 is the minimum, O(1)
+    out = data[0].id;
   }
-  out = data[0].id;
-  return 1;  // native answer: index 0 is the minimum, O(1)
+  return counter_.total() - before;
 }
 
 size_t SortedArrayRegistry::size() const {

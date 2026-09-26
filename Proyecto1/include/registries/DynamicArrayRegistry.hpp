@@ -21,7 +21,7 @@ class DynamicArrayRegistry : public ITargetRegistry {
   int capacity;  ///< Allocated slots.
   int count;     ///< Slots actually in use.
 
-  StepCounter counter_;
+  mutable StepCounter counter_;
 
  public:
   /// @brief Creates an empty registry with room for 4 entries.

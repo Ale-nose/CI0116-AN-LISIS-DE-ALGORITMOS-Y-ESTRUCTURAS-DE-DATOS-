@@ -10,8 +10,19 @@
 #include "KeyType.hpp"
 
 // Per-operation step counter, shared by every concrete registry.
-// total() is what gets returned by each interface method; the four
-// category fields are what gets written to the combat log.
+// Every step an operation performs is recorded here exactly once, and
+// each interface method returns counter_.total() after the operation
+// minus counter_.total() before it — so the cost that blocks a tower,
+// the log's steps_total and the sum of the four categories are always
+// the same number. Category rules, applied identically by all 8:
+//  - comparison(): examining one element/key/bucket (a three-way
+//    compare of the same pair counts once).
+//  - pointerHop(): following or rewriting a link to reach or attach an
+//    element: walking to the next node/child, splicing or attaching a
+//    node, jumping from a hash to its bucket, peeking a known slot.
+//  - shift(): writing an element into an array position: shifting,
+//    swapping, appending, or copying during grow/rehash.
+//  - rotation(): one tree rotation.
 struct StepCounter {
   int comparisons = 0;
   int pointerHops  = 0;
