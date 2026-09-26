@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <array>
@@ -12,12 +12,13 @@
 constexpr int TOTAL_WAVES = 20;
 constexpr int WAVE_BASE = 20;           // enemies in wave 1
 constexpr double WAVE_FACTOR = 1.3;     // growth per wave: base * factor^(w-1)
-constexpr int WAVE_SPAWN_INTERVAL_TICKS = 10; // ticks between spawns during combat
+// ticks between spawns during combat
+constexpr int WAVE_SPAWN_INTERVAL_TICKS = 10;
 
 /// @brief How many enemies of each category make up a wave.
 struct WaveComposition {
   std::array<int, kCategoryCount> perCategory{};
-  
+
   /// @brief Total enemies across all categories.
   int total() const;
 };
@@ -38,8 +39,8 @@ WaveComposition buildComposition(int totalSize);
 
 /// @brief Which of the two phases the current wave is in.
 enum class WavePhase {
-  Construction, // unlimited time; player previews composition, buys/swaps cores
-  Combat        // wave is running; slot cores are fixed
+  Construction,  // unlimited time; player previews composition, buys cores
+  Combat         // wave is running; slot cores are fixed
 };
 
 /**
@@ -54,25 +55,25 @@ class WaveManager {
   int currentWave_;
   WavePhase phase_;
   WaveComposition composition_;
-  
+
   std::vector<EnemyCategory> spawnQueue;  // flattened, one entry per enemy
   size_t nextToSpawn;
   int ticksSinceLastSpawn;
   uint64_t totalSpawnedCount;
 
-  public:
+ public:
   /// @brief Starts at wave 1, in the construction phase.
   WaveManager();
-  
+
   /// @brief The wave currently being previewed or fought (1-based).
   int currentWave() const { return currentWave_; }
-  
+
   /// @brief Which phase the current wave is in.
   WavePhase phase() const { return phase_; }
-  
+
   /// @brief Composition of the current wave, valid in both phases.
   const WaveComposition& composition() const { return composition_; }
-  
+
   /**
    * @brief Ends the construction phase and starts combat.
    *

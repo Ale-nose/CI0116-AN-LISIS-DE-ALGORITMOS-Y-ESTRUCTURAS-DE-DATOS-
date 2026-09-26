@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "TargetRegistry.hpp"
@@ -16,7 +16,7 @@ class DynamicArrayRegistry : public ITargetRegistry {
     EnemyId id;  ///< Enemy identifier.
     Key key;     ///< Ordering key (== id in this project).
   };
-  
+
   Entry* data;   ///< Backing storage.
   int capacity;  ///< Allocated slots.
   int count;     ///< Slots actually in use.

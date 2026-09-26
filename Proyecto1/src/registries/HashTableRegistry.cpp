@@ -1,10 +1,10 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "HashTableRegistry.hpp"
 
 #include <functional>
 #include <utility>
 
-HashTableRegistry::HashTableRegistry() 
+HashTableRegistry::HashTableRegistry()
   : buckets(kInitialBucketCount), count(0) {}
 
 int HashTableRegistry::bucketIndex(Key key) const {

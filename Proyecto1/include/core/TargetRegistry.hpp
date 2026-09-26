@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 // Common interface for all 8 targeting towers implementations
 // Step logic:every operation (comparison, pointer movemement,
 // shift, rotation) counts as exactly 1 step. Counts are kept per
@@ -12,33 +13,34 @@
 // total() is what gets returned by each interface method; the four
 // category fields are what gets written to the combat log.
 struct StepCounter {
-    int comparisons = 0;
-    int pointerHops  = 0;
-    int shifts       = 0;
-    int rotations    = 0;
+  int comparisons = 0;
+  int pointerHops  = 0;
+  int shifts       = 0;
+  int rotations    = 0;
 
-    int total() const { 
-      return comparisons + pointerHops + shifts + rotations;
-    }
-    
-    void comparison(){ 
-      ++comparisons; 
-    }
-    void pointerHop(){ 
-      ++pointerHops; 
-    }
-    void shift(){ 
-      ++shifts;
-    }
-    void rotation() {
-      ++rotations;
-    }
-  };
+  int total() const {
+    return comparisons + pointerHops + shifts + rotations;
+  }
+
+  void comparison() {
+    ++comparisons;
+  }
+  void pointerHop() {
+    ++pointerHops;
+  }
+  void shift() {
+    ++shifts;
+  }
+  void rotation() {
+    ++rotations;
+  }
+};
 
 // Pure interface: every method is a contract, not an implementation.
-// Each of the 8 concrete registries inherits from this and fills in the actual logic.
+// Each of the 8 concrete registries inherits
+// from this and fills in the actual logic.
 class ITargetRegistry {
-public:
+ public:
     virtual ~ITargetRegistry() = default;
 
     // Inserts id with key k. Returns steps consumed.

@@ -1,4 +1,5 @@
-#pragma once 
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
+#pragma once
 /**
  * @brief Enemy identifier, used as the sole targeting key across all
  * 8 registries.

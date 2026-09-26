@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "TargetRegistry.hpp"
@@ -11,7 +11,7 @@
  * the balance invariant.
  */
 class AvlRegistry : public ITargetRegistry {
-  private:
+ private:
   /// @brief A single tree node.
   struct Node {
     EnemyId id;   ///< Enemy identifier.
@@ -20,22 +20,22 @@ class AvlRegistry : public ITargetRegistry {
     Node* right;  ///< Right subtree (larger keys).
     int height;   ///< Height of this subtree.
   };
-  
+
   /// @brief Height of a subtree (0 for nullptr).
   static int heightOf(Node* node);
-  
+
   /// @brief Recomputes a node's height from its children.
   static void updateHeight(Node* node);
-  
+
   /// @brief Left height minus right height; outside [-1, 1] means unbalanced.
   static int balanceFactor(Node* node);
-  
+
   /// @brief Standard AVL right rotation. Counted as 1 step by the caller.
   static Node* rotateRight(Node* y);
-  
+
   /// @brief Standard AVL left rotation. Counted as 1 step by the caller.
   static Node* rotateLeft(Node* x);
-  
+
   /**
    * @brief Recursive insert with rebalancing on the way back up.
    * @param node  Subtree root to insert into.
@@ -45,7 +45,7 @@ class AvlRegistry : public ITargetRegistry {
    * @return New subtree root (may differ from `node` if a rotation occurred).
    */
   Node* insertRec(Node* node, EnemyId id, Key k, int& steps);
-  
+
   /**
    * @brief Finds the minimum-key node of a subtree.
    * @param node  Subtree to search (must not be nullptr).
@@ -53,7 +53,7 @@ class AvlRegistry : public ITargetRegistry {
    * @return The leftmost (minimum) node.
    */
   Node* findMin(Node* node, int& steps) const;
-  
+
   /**
    * @brief Recursive erase with rebalancing on the way back up.
    * @param node  Subtree root to erase from.
@@ -63,10 +63,10 @@ class AvlRegistry : public ITargetRegistry {
    * @return New subtree root (may differ from `node`).
    */
   Node* eraseRec(Node* node, EnemyId id, int& steps, bool& found);
-  
+
   /// @brief Recursively frees a subtree.
   void destroy(Node* node);
-  
+
   Node* root;         ///< Tree root, or nullptr if empty.
   size_t count;       ///< Number of stored entries.
 

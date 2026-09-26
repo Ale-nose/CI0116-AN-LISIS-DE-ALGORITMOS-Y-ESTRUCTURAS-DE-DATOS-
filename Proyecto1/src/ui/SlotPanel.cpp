@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "SlotPanel.hpp"
 
 #include <QMouseEvent>
@@ -33,7 +34,8 @@ void SlotPanel::showEmpty() {
   lagBar_->setValue(0);
 }
 
-void SlotPanel::showOccupied(CoreType type, std::size_t enemiesTracked, int lagPercent) {
+void SlotPanel::showOccupied(
+  CoreType type, std::size_t enemiesTracked, int lagPercent) {
   structureLabel_->setText(coreTypeName(type));
   sizeLabel_->setText(QString("Enemies tracked: %1").arg(enemiesTracked));
   lagBar_->setValue(lagPercent);

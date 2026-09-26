@@ -1,24 +1,24 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
-#include "Grid.hpp"
 #include <vector>
 #include <utility>
 #include <unordered_map>
 #include <functional>
+#include "Grid.hpp"
 
 using Point = std::pair<int, int>;
 
 // Hash for Point so it can be used as an unordered_map key.
 struct PointHash {
   size_t operator()(const Point& p) const {
-      return std::hash<int>()(p.first) * 31 + std::hash<int>()(p.second);
+    return std::hash<int>()(p.first) * 31 + std::hash<int>()(p.second);
   }
 };
 
 // A cell an enemy can actually stand on.
 inline bool isWalkable(CellType t) {
-    return t == CellType::Path || t == CellType::Entrance || t == CellType::Exit;
+  return t == CellType::Path || t == CellType::Entrance || t == CellType::Exit;
 }
 
 // nodes: every walkable cell. adjacency: walkable neighbors per cell.

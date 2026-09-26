@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include "TargetRegistry.hpp"
@@ -19,16 +19,16 @@ class BstRegistry : public ITargetRegistry {
     Node* left;   ///< Left subtree (smaller keys).
     Node* right;  ///< Right subtree (larger keys).
   };
-  
+
   /// @brief Recursively frees a subtree.
   void destroy(Node* node);
-  
+
   Node* root;         ///< Tree root, or nullptr if empty.
   size_t count;  ///< Number of stored entries.
 
   StepCounter counter_;
 
-  public:
+ public:
   /// @brief Creates an empty registry.
   BstRegistry();
 

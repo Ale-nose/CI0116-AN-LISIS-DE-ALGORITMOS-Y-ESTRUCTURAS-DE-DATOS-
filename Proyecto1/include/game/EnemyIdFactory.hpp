@@ -1,3 +1,4 @@
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <cstdint>
@@ -15,7 +16,7 @@
  */
 inline EnemyId generateEnemyId(EnemyCategory category, std::uint64_t spawnIndex
   , std::size_t bucketCount) {
-  switch (category){
+  switch (category) {
     case EnemyCategory::Hive:
       // Multiplies by bucketCount to force Hash Table bucket 0 collisions.
       return static_cast<EnemyId>(spawnIndex * bucketCount);

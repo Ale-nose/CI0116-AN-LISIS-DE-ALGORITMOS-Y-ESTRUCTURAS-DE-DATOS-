@@ -1,4 +1,4 @@
-// Copyright 2026 Kevin Velásquez García
+// Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
 #include <vector>
@@ -18,7 +18,7 @@ class MinHeapRegistry : public ITargetRegistry {
     EnemyId id;  ///< Enemy identifier.
     Key key;     ///< Ordering key (== id in this project).
   };
-  
+
   /**
    * @brief Moves data_[index] up while it's smaller than its parent.
    * @param index Starting index.
@@ -26,7 +26,7 @@ class MinHeapRegistry : public ITargetRegistry {
    * @return The index where the element finally landed.
    */
   int siftUp(int index, int& steps);
-  
+
   /**
    * @brief Moves data_[index] down while it's bigger than a child.
    * @param index Starting index.
@@ -34,7 +34,7 @@ class MinHeapRegistry : public ITargetRegistry {
    * @return The index where the element finally landed.
    */
   int siftDown(int index, int& steps);
-  
+
   std::vector<Entry> data;  ///< Backing array, kept in heap order.
   int count;                ///< Number of stored entries.
 
