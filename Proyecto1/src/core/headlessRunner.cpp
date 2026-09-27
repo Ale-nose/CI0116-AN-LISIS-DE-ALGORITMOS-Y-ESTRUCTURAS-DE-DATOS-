@@ -62,6 +62,8 @@ int runHeadless(const CliArgs& args) {
   Simulation sim(args.seed, cfg);
   sim.installCoreEverywhere(*coreType);
 
+  // TODO: Once combat no longer starts automatically in Simulation::tick(),
+  // start each wave automatically here because headless mode has no player.
   while (!sim.over()) {
     sim.tick();
   }

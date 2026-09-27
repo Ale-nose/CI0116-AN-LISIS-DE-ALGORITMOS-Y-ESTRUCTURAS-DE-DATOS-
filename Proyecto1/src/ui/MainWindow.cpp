@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget* parent)
   hud_ = new HudPanel(central);
   layout->addWidget(hud_);
 
+  // TODO: Add a START WAVE button for the Construction phase. Clicking it
+  // must call Simulation::startWave() and disable the button during Combat.
+
   mapView_ = new MapView(central);
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
   layout->addWidget(mapView_);
@@ -40,13 +43,17 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::onTick() {
   // Advance simulation engine using accumulated real-world elapsed time
-  simulation_.advance(REFRESH_INTERVAL_MS);\
+  simulation_.advance(REFRESH_INTERVAL_MS);
+  // TODO: Check simulation_.over(). If the match ended, stop the timer and
+  // show a final Victory or Game Over message to the player.
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
   slotGrid_->refresh(simulation_.slotManager());
   hud_->refresh(simulation_.state());
 }
 
 void MainWindow::onSlotClicked(int slotIndex) {
+  // TODO: Allow tower purchases and upgrades only during Construction.
+  // During Combat, tower structures must remain fixed.
   UpgradeDialog dialog(slotIndex, simulation_.economy(), this);
   if (dialog.exec() != QDialog::Accepted) {
     return;
