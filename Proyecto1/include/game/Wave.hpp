@@ -69,7 +69,7 @@ class WaveManager {
   int currentWave_;
   WavePhase phase_;
   WaveComposition composition_;
-  
+
   std::vector<EnemyCategory> spawnQueue;  // flattened, one entry per enemy
   size_t nextToSpawn;
   int combatTicks;           ///< Ticks elapsed in the current combat phase.

@@ -84,8 +84,7 @@ HudPanel::HudPanel(QWidget* parent) : QFrame(parent) {
     "border-radius: 7px;"
     "padding: 8px;"
     "font-size: 13px;"
-    "}"
-  );
+    "}");
 }
 
 void HudPanel::refresh(const WorldState& state) {

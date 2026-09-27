@@ -60,8 +60,7 @@ SlotPanel::SlotPanel(QWidget* parent) : QFrame(parent) {
     "#lagBar::chunk {"
     "background-color: #d0a142;"
     "border-radius: 4px;"
-    "}"
-  );
+    "}");
 }
 
 void SlotPanel::mousePressEvent(QMouseEvent* /*event*/) {

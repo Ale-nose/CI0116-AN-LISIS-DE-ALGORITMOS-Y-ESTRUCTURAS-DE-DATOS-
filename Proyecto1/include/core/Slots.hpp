@@ -130,6 +130,6 @@ class SlotManager {
   }
 
  private:
-  std::array<std::unique_ptr<Tower>, kSlotCount> towers_;  ///< Per slot.
-  std::array<std::optional<CoreType>, kSlotCount> installedTypes_;  ///< Per slot.
+  std::array<std::unique_ptr<Tower>, kSlotCount> towers_;
+  std::array<std::optional<CoreType>, kSlotCount> installedTypes_;
 };
