@@ -59,8 +59,7 @@ struct EnemyViewState {
 struct WorldState {
   std::uint64_t ticks_elapsed = 0;  ///< Total ticks executed.
   bool game_over = false;
-  // TODO: Expose the current wave phase so the UI can distinguish between
-  // Construction and Combat without accessing WaveManager directly.
+  WavePhase phase = WavePhase::Construction;  ///< Construction or Combat.
   int current_wave = 1;  ///< 1-based wave currently being previewed/fought.
   int credits = STARTING_CREDITS;
   int lives = STARTING_LIVES;
@@ -80,9 +79,6 @@ struct Stats {
 };
 
 class Simulation {
- // TODO: Add a public startWave() method that starts combat only when the
- // current wave is in the Construction phase. The UI must use this method
- // instead of accessing WaveManager directly.
  public:
   /**
    * @brief Constructs the simulation engine.
@@ -144,6 +140,12 @@ class Simulation {
    * @return true if the purchase went through.
    */
   bool purchaseCore(int slotIndex, CoreType type);
+
+  /**
+   * @brief Starts combat for the current wave, but only if
+   * it is still in Construction.
+   */
+  void startWave();
 
   /**
    * @brief Provides read-only access to the slot manager, for the UI to
