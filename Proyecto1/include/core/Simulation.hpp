@@ -46,6 +46,13 @@ struct Config {
   bool ignoreDefeat = false;
 };
 
+struct EnemyViewState {
+  EnemyId id;
+  EnemyCategory category;
+  int gridX;
+  int gridY;
+};
+
 /**
  * @brief Read-only snapshot of the game state for the UI
  */
@@ -56,6 +63,7 @@ struct WorldState {
   int credits = STARTING_CREDITS;
   int lives = STARTING_LIVES;
   WaveComposition next_wave_composition{};
+  std::vector<EnemyViewState> enemies;
 };
 
 /**
