@@ -29,8 +29,7 @@ SlotGridView::SlotGridView(QWidget* parent) : QWidget(parent) {
     "background-color: #172019;"
     "border: 2px solid #344638;"
     "border-radius: 10px;"
-    "}"
-  );
+    "}");
 }
 
 void SlotGridView::refresh(const SlotManager& manager) {

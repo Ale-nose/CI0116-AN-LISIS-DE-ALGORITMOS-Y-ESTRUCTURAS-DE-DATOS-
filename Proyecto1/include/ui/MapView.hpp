@@ -1,10 +1,10 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
-#include <array>
-#include <optional>
 #include <QPixmap>
 #include <QWidget>
+#include <array>
+#include <optional>
 #include "Grid.hpp"
 #include "Simulation.hpp"
 

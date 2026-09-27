@@ -80,7 +80,6 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
   const auto& positions = towerSlotPositions();
 
   for (int i = 0; i < SlotManager::kSlotCount; ++i) {
-
     if (!installedCores_[i]) {
       continue;
     }
@@ -100,8 +99,7 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
       gridX * kCellSize,
       gridY * kCellSize,
       kCellSize,
-      kCellSize
-    );
+      kCellSize);
 
     QRect spriteRect = cellRect.adjusted(1, 1, -1, -1);
 
@@ -110,7 +108,6 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
 
   // DRAW ENEMIES
   for (const auto& enemy : worldState_.enemies) {
-
     const QPixmap& sprite = enemySprites_[static_cast<std::size_t>(
       enemy.category)];
 
@@ -141,8 +138,7 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
       centerX - spriteSize / 2,
       centerY - spriteSize / 2,
       spriteSize,
-      spriteSize
-    );
+      spriteSize);
 
     painter.drawPixmap(spriteRect, sprite);
   }
@@ -164,7 +160,7 @@ void MapView::mousePressEvent(QMouseEvent* event) {
 
   for (std::size_t i = 0; i < positions.size(); ++i) {
     if (positions[i].first == cellX && positions[i].second == cellY) {
-      Q_EMIT slotClicked( static_cast<int>(i));
+      Q_EMIT slotClicked(static_cast<int>(i));
       return;
     }
   }
