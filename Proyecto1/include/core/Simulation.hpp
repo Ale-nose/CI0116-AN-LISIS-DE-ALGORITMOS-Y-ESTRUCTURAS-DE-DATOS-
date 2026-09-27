@@ -91,7 +91,9 @@ class Simulation {
   /**
    * @brief Advances the simulation by one discrete tick. Drives the wave
    * spawn timer, asks every slot's tower to act, increments the overall
-   * match tick counter, and refreshes the WorldState.
+   * match tick counter, and refreshes the WorldState. Does nothing while
+   * the wave is in its construction phase (see startWave()) or the match
+   * is over.
    */
   void tick();
 
@@ -142,10 +144,21 @@ class Simulation {
   bool purchaseCore(int slotIndex, CoreType type);
 
   /**
-   * @brief Starts combat for the current wave, but only if
-   * it is still in Construction.
+   * @brief Section 3.4 — ends the construction phase and starts combat
+   * for the current wave. The windowed UI calls it from its start button;
+   * headless mode calls it itself, since it has no player. No-op if the
+   * wave is already in combat.
    */
   void startWave();
+
+  /**
+   * @brief Whether the current wave is waiting in its construction phase
+   * for startWave().
+   * @return true during construction; ticks do nothing until then.
+   */
+  bool inConstruction() const {
+    return waves_.phase() == WavePhase::Construction;
+  }
 
   /**
    * @brief Provides read-only access to the slot manager, for the UI to
