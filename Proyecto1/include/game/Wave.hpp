@@ -69,12 +69,13 @@ class WaveManager {
   int currentWave_;
   WavePhase phase_;
   WaveComposition composition_;
-
+  
   std::vector<EnemyCategory> spawnQueue;  // flattened, one entry per enemy
   size_t nextToSpawn;
   int combatTicks;           ///< Ticks elapsed in the current combat phase.
   int spawnWindowTicks;      ///< Ticks this wave takes to finish spawning.
   uint64_t totalSpawnedCount;  ///< Enemies spawned so far in the match.
+  bool wavesComplete_;
 
   /**
    * @brief When set, every wave is made only of this category (report
@@ -140,5 +141,5 @@ class WaveManager {
   void advanceToNextWave();
 
   /// @brief Whether wave TOTAL_WAVES has already been completed.
-  bool allWavesComplete() const { return currentWave_ > TOTAL_WAVES; }
+  bool allWavesComplete() const { return wavesComplete_; }
 };

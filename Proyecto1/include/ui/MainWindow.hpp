@@ -15,6 +15,7 @@ class MainWindow : public QMainWindow {
   explicit MainWindow(QWidget* parent = nullptr);
 
   private Q_SLOTS:
+    // TODO: Add an onStartWave() slot connected to the START WAVE button.
     void onTick();
 
     // Section 5.3 — opens the upgrade dialog for the clicked slot; on
@@ -29,5 +30,7 @@ class MainWindow : public QMainWindow {
   HudPanel* hud_ = nullptr;
   MapView* mapView_ = nullptr;
   SlotGridView* slotGrid_ = nullptr;
+  // TODO: Store the START WAVE button so it can be enabled only during
+  // Construction and disabled while Combat is running.
   QTimer* timer_ = nullptr;
 };
