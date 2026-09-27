@@ -8,7 +8,7 @@
 MainWindow::MainWindow(QWidget* parent)
   : QMainWindow(parent)
   , simulation_(/*seed=*/12345, Config{}) {
-  // Initialize central widget: HUD on top, the map in the middle, and the 
+  // Initialize central widget: HUD on top, the map in the middle, and the
   // per-slot panels below.
   QWidget* central = new QWidget(this);
   QVBoxLayout* layout = new QVBoxLayout(central);
@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget* parent)
 
   setCentralWidget(central);
 
-  // A click on a tower-slot cell in the map opens the upgrade dialog for 
+  // A click on a tower-slot cell in the map opens the upgrade dialog for
   // that slot.
   connect(mapView_, &MapView::slotClicked, this, &MainWindow::onSlotClicked);
 
@@ -97,7 +97,7 @@ void MainWindow::updateInteractivity() {
 void MainWindow::handleMatchEnd() {
   timer_->stop();
   bool won = simulation_.economy().getLives() > 0;
-  
-  QMessageBox::information(this, won ? "Victory" : "Game Over",
-    won ? "You survived all 20 waves!" : "The base has fallen.");
+
+  QMessageBox::information(this, won ? "Victory" : "Game Over"
+    , won ? "You survived all 20 waves!" : "The base has fallen.");
 }

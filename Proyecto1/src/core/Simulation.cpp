@@ -17,8 +17,6 @@ Simulation::Simulation(std::uint32_t seed, const Config& config)
   refreshWorldState();
 }
 
-// TODO: Stop processing ticks once the match is over. This prevents the
-// simulation from continuing after zero lives or after wave 20.
 void Simulation::tick() {
   if (over()) {
     return;
