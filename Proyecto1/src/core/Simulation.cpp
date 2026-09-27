@@ -22,6 +22,14 @@ void Simulation::tick() {
     return;
   }
 
+  // Section 3.4 — the construction phase has no time limit and nothing
+  // happens in it: the clock only runs once startWave() begins combat.
+  // Without this, an empty construction phase looks like a finished wave
+  // (nothing left to spawn, no enemies alive) and gets skipped.
+  if (waves_.phase() == WavePhase::Construction) {
+    return;
+  }
+
   ticks_engine_.tick();
   ++world_state_.ticks_elapsed;
 
