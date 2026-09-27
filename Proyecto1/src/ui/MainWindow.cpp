@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget* parent)
   layout->addWidget(hud_);
 
   mapView_ = new MapView(central);
+  mapView_->refresh(simulation_.state(), simulation_.slotManager());
   layout->addWidget(mapView_);
 
   slotGrid_ = new SlotGridView(central);
@@ -39,7 +40,8 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::onTick() {
   // Advance simulation engine using accumulated real-world elapsed time
-  simulation_.advance(REFRESH_INTERVAL_MS);
+  simulation_.advance(REFRESH_INTERVAL_MS);\
+  mapView_->refresh(simulation_.state(), simulation_.slotManager());
   slotGrid_->refresh(simulation_.slotManager());
   hud_->refresh(simulation_.state());
 }
@@ -58,7 +60,7 @@ void MainWindow::onSlotClicked(int slotIndex) {
   if (!simulation_.purchaseCore(slotIndex, *chosen)) {
     return;  // shouldn't happen: unaffordable options are disabled in dialog
   }
-
+  mapView_->refresh(simulation_.state(), simulation_.slotManager());
   slotGrid_->refresh(simulation_.slotManager());
   hud_->refresh(simulation_.state());
 }

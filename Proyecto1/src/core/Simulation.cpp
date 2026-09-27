@@ -201,6 +201,29 @@ void Simulation::refreshWorldState() {
   world_state_.credits = economy_.getCredits();
   world_state_.lives = economy_.getLives();
   world_state_.next_wave_composition = waves_.composition();
+  world_state_.enemies.clear();
+
+  for (const auto& [id, tracked] : active_enemies_) {
+    int pathIndex = static_cast<int>(route_.length())
+      - tracked.enemy.getDistanceToBase();
+
+    if (pathIndex < 0) {
+      pathIndex = 0;
+    }
+
+    if (pathIndex >= static_cast<int>(route_.length())) {
+      pathIndex = static_cast<int>(route_.length()) - 1;
+    }
+
+    Point cell = route_.at(static_cast<std::size_t>(pathIndex));
+
+    world_state_.enemies.push_back({
+      id,
+      tracked.enemy.getCategory(),
+      cell.first,
+      cell.second
+    });
+  }
 }
 
 void Simulation::logWave(int waveNumber) {

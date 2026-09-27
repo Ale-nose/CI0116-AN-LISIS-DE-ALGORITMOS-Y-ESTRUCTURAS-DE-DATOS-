@@ -1,9 +1,12 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
-#include <QWidget>
+#include <array>
+#include <optional>
 #include <QPixmap>
+#include <QWidget>
 #include "Grid.hpp"
+#include "Simulation.hpp"
 
 class MapView : public QWidget {
   Q_OBJECT
@@ -11,10 +14,9 @@ class MapView : public QWidget {
  public:
   explicit MapView(QWidget* parent = nullptr);
 
+  void refresh(const WorldState& state, const SlotManager& slotManager);
+
 Q_SIGNALS:
-  // Section 5.3's trigger: emitted when the player clicks a cell that
-  // is one of the 8 tower slots. slotIndex matches SlotManager's
-  // 0..7 indexing (see MapBuilder::towerSlotPositions()).
   void slotClicked(int slotIndex);
 
  protected:
@@ -23,6 +25,18 @@ Q_SIGNALS:
 
  private:
   Grid grid_;
+
   QPixmap mapPixmap_;
-  static constexpr int kCellSize = 30;  // pixels per cell
+
+  std::array<QPixmap, 8> towerSprites_;
+  std::array<QPixmap, kCategoryCount> enemySprites_;
+
+  std::array<
+    std::optional<CoreType>,
+    SlotManager::kSlotCount>
+    installedCores_{};
+
+  WorldState worldState_;
+
+  static constexpr int kCellSize = 30;
 };
