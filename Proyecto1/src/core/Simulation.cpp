@@ -20,17 +20,14 @@ Simulation::Simulation(std::uint32_t seed, const Config& config)
 // TODO: Stop processing ticks once the match is over. This prevents the
 // simulation from continuing after zero lives or after wave 20.
 void Simulation::tick() {
+  if (over()) {
+    return;
+  }
+
   ticks_engine_.tick();
   ++world_state_.ticks_elapsed;
 
-  // TODO: Do not start combat automatically. Construction must last until
-  // the player explicitly starts the wave from the UI.
-  if (waves_.phase() == WavePhase::Construction) {
-    waves_.startCombat();
-  }
-
   int initialDistance = static_cast<int>(route_.length());
-  // Big waves spawn several enemies per tick (see WAVE_MAX_SPAWN_TICKS).
   for (const Enemy& spawned : waves_.tick(initialDistance, HIVE_ID_STRIDE)) {
     EnemyId id = spawned.getId();
     auto inserted = active_enemies_.emplace(id, TrackedEnemy{spawned, {}});
@@ -62,6 +59,7 @@ void Simulation::tick() {
       removeEnemy(r.target);
     }
   }
+
   if (waves_.doneSpawning() && !reachedWaveLimit()
       && active_enemies_.empty()) {
     logWave(waves_.currentWave());
@@ -202,11 +200,16 @@ bool Simulation::purchaseCore(int slotIndex, CoreType type) {
   return true;
 }
 
+void Simulation::startWave() {
+  if (waves_.phase() == WavePhase::Construction) {
+    waves_.startCombat();
+  }
+}
+
 void Simulation::refreshWorldState() {
   bool defeated = economy_.isDefeated() && !config_.ignoreDefeat;
   world_state_.game_over = reachedWaveLimit() || defeated;
-  // TODO: Copy the current WaveManager phase into WorldState once the phase
-  // field is added, so the UI can react to Construction and Combat.
+  world_state_.phase = waves_.phase();
   world_state_.current_wave = waves_.currentWave();
   world_state_.credits = economy_.getCredits();
   world_state_.lives = economy_.getLives();
