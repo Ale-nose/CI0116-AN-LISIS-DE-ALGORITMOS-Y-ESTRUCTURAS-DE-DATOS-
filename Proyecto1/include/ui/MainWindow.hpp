@@ -1,13 +1,13 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QPushButton>
 #include <QString>
 #include <QTimer>
+#include <cstddef>
+#include <cstdint>
 #include "HudPanel.hpp"
 #include "MapView.hpp"
 #include "Replay.hpp"
@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow {
   explicit MainWindow(bool challengeMode,
       const ReplayData* replayData = nullptr, QWidget* parent = nullptr);
 
- private Q_SLOTS:
+  private Q_SLOTS:
   void onTick();
 
   /**

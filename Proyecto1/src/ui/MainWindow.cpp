@@ -52,16 +52,15 @@ std::string replayOutputPath() {
 }  // namespace
 
 MainWindow::MainWindow(
-    bool challengeMode,
-    const ReplayData* replayData,
-    QWidget* parent)
-    : QMainWindow(parent),
-    challengeMode_(challengeMode),
-    replayMode_(replayData != nullptr),
-    replayData_(replayData ? *replayData : ReplayData{}),
-    seed_(launchSeed(challengeMode, replayData)),
-    simulation_(seed_, Config{}) {
-
+  bool challengeMode,
+  const ReplayData* replayData,
+  QWidget* parent)
+  : QMainWindow(parent),
+  challengeMode_(challengeMode),
+  replayMode_(replayData != nullptr),
+  replayData_(replayData ? *replayData : ReplayData{}),
+  seed_(launchSeed(challengeMode, replayData)),
+  simulation_(seed_, Config{}) {
   if (!replayMode_) {
     replayData_.seed = seed_;
   }
