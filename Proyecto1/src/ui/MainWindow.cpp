@@ -2,40 +2,70 @@
 #include "MainWindow.hpp"
 #include <QCoreApplication>
 #include <QDir>
+#include <QHBoxLayout>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMediaPlayer>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QInputDialog>
-#include <QLineEdit>
-#include <QPushButton>
-
 #include <string>
-
-#include "CombatConstants.hpp"
-#include "UpgradeDialog.hpp"
-#include "ChallengeMode.hpp"
 #include "ChallengeLeaderboard.hpp"
 #include "ChallengeLeaderboardDialog.hpp"
+#include "ChallengeMode.hpp"
+#include "CombatConstants.hpp"
+#include "Replay.hpp"
+#include "UpgradeDialog.hpp"
 
 namespace {
 
 std::string challengeScoresPath() {
   const QString path = QDir::cleanPath(
     QCoreApplication::applicationDirPath()
-      + "/../../report/challenge_scores.csv");
+    + "/../../report/challenge_scores.csv");
+
+  return path.toStdString();
+}
+
+constexpr std::uint32_t DEFAULT_UI_SEED = 12345;
+
+std::uint32_t launchSeed(
+    bool challengeMode,
+    const ReplayData* replayData) {
+  if (replayData != nullptr) {
+    return replayData->seed;
+  }
+
+  return challengeMode ? CHALLENGE_SEED : DEFAULT_UI_SEED;
+}
+
+std::string replayOutputPath() {
+  const QString path = QDir::cleanPath(
+    QCoreApplication::applicationDirPath()
+    + "/../../report/last_replay.csv");
 
   return path.toStdString();
 }
 
 }  // namespace
 
-MainWindow::MainWindow(bool challengeMode, QWidget* parent)
-  : QMainWindow(parent),
-  challengeMode_(challengeMode),
-  simulation_(challengeMode ? CHALLENGE_SEED : 12345, Config{}) {
-  // Initialize central widget: HUD on top, the map in the middle, and the
-  // per-slot panels below.
+MainWindow::MainWindow(
+    bool challengeMode,
+    const ReplayData* replayData,
+    QWidget* parent)
+    : QMainWindow(parent),
+    challengeMode_(challengeMode),
+    replayMode_(replayData != nullptr),
+    replayData_(replayData ? *replayData : ReplayData{}),
+    seed_(launchSeed(challengeMode, replayData)),
+    simulation_(seed_, Config{}) {
+
+  if (!replayMode_) {
+    replayData_.seed = seed_;
+  }
+
   QWidget* central = new QWidget(this);
   QVBoxLayout* layout = new QVBoxLayout(central);
 
@@ -106,55 +136,69 @@ MainWindow::MainWindow(bool challengeMode, QWidget* parent)
 
   startWaveButton_ = new QPushButton("START WAVE", central);
 
-  // Button style
   startWaveButton_->setStyleSheet(
-      "QPushButton {"
-      "  background-color: #c62828;"
-      "  color: white;"
-      "  font-weight: bold;"
-      "  font-size: 14px;"
-      "  border: 2px solid #8e0000;"
-      "  border-radius: 5px;"
-      "  padding: 8px 16px;"
-      "}"
-      "QPushButton:hover {"
-      "  background-color: #e53935;"
-      "}"
-      "QPushButton:pressed {"
-      "  background-color: #b71c1c;"
-      "}"
-      "QPushButton:disabled {"
-      "  background-color: #555555;"
-      "  color: #888888;"
-      "  border: 1px solid #444444;"
-      "}");
+    "QPushButton {"
+    "background-color: #c62828;"
+    "color: white;"
+    "font-weight: bold;"
+    "font-size: 14px;"
+    "border: 2px solid #8e0000;"
+    "border-radius: 5px;"
+    "padding: 8px 16px;"
+    "}"
+    "QPushButton:hover {"
+    "background-color: #e53935;"
+    "}"
+    "QPushButton:pressed {"
+    "background-color: #b71c1c;"
+    "}"
+    "QPushButton:disabled {"
+    "background-color: #555555;"
+    "color: #888888;"
+    "border: 1px solid #444444;"
+    "}");
 
-  connect(startWaveButton_, &QPushButton::clicked, this
-    , &MainWindow::onStartWave);
+  connect(
+    startWaveButton_,
+    &QPushButton::clicked,
+    this,
+    &MainWindow::onStartWave);
+
   layout->addWidget(startWaveButton_);
 
   hollowPurpleButton_ = new QPushButton(central);
-  connect(hollowPurpleButton_, &QPushButton::clicked, this
-    , &MainWindow::onHollowPurple);
+
+  connect(
+    hollowPurpleButton_,
+    &QPushButton::clicked,
+    this,
+    &MainWindow::onHollowPurple);
+
   layout->addWidget(hollowPurpleButton_);
 
-  // Same assets folder MapView loads its images from. If the file is
-  // missing or can't be decoded, the effect just stays silent.
   const QString assetsPath = QDir::cleanPath(
-    QCoreApplication::applicationDirPath() + "/../../assets");
-  // QMediaPlayer plays through GStreamer, which reaches WSL's sound server
-  // more reliably than QSoundEffect.
+    QCoreApplication::applicationDirPath()
+    + "/../../assets");
+
   hollowPurpleSound_ = new QMediaPlayer(this);
-  connect(hollowPurpleSound_,
+
+  connect(
+    hollowPurpleSound_,
     QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, [this] {
-      qWarning("Hollow Purple sound error: %s",
+      qWarning(
+        "Hollow Purple sound error: %s",
         qPrintable(hollowPurpleSound_->errorString()));
     });
+
   hollowPurpleSound_->setMedia(
-    QUrl::fromLocalFile(assetsPath + "/sounds/hollow_purple.wav"));
+    QUrl::fromLocalFile(
+      assetsPath + "/sounds/hollow_purple.wav"));
 
   mapView_ = new MapView(central);
-  mapView_->refresh(simulation_.state(), simulation_.slotManager());
+  mapView_->refresh(
+    simulation_.state(),
+    simulation_.slotManager());
+
   layout->addWidget(mapView_);
 
   slotGrid_ = new SlotGridView(central);
@@ -162,28 +206,83 @@ MainWindow::MainWindow(bool challengeMode, QWidget* parent)
 
   setCentralWidget(central);
 
-  // A click on a tower-slot cell in the map opens the upgrade dialog for
-  // that slot.
-  connect(mapView_, &MapView::slotClicked, this, &MainWindow::onSlotClicked);
+  connect(
+    mapView_,
+    &MapView::slotClicked,
+    this,
+    &MainWindow::onSlotClicked);
 
   hud_->refresh(simulation_.state());
   updateInteractivity();
 
-  // Setup UI refresh timer to tick independently of simulation logic
   timer_ = new QTimer(this);
-  connect(timer_, &QTimer::timeout, this, &MainWindow::onTick);
+
+  connect(
+    timer_,
+    &QTimer::timeout,
+    this,
+    &MainWindow::onTick);
+
   timer_->start(REFRESH_INTERVAL_MS);
 
-  setWindowTitle("Overflow: Algorithmic Tower Defense");
+  if (replayMode_) {
+    setWindowTitle("Overflow: Algorithmic Tower Defense - REPLAY");
+  } else {
+    setWindowTitle("Overflow: Algorithmic Tower Defense");
+  }
+}
+
+bool MainWindow::applyReplayWave() {
+  if (!replayMode_ || !simulation_.inConstruction()) {
+    return true;
+  }
+
+  const int wave = simulation_.state().current_wave;
+
+  while (replayDecisionIndex_ < replayData_.decisions.size()) {
+    const PlayerDecision& decision =
+      replayData_.decisions[replayDecisionIndex_];
+
+    if (decision.wave > wave) {
+      break;
+    }
+
+    if (decision.wave < wave) {
+      return false;
+    }
+
+    if (!simulation_.purchaseCore(decision.slot, decision.core)) {
+      return false;
+    }
+
+    ++replayDecisionIndex_;
+  }
+
+  simulation_.startWave();
+  return true;
 }
 
 void MainWindow::onTick() {
-  // Advance simulation engine using accumulated real-world elapsed time
+  if (replayMode_ && simulation_.inConstruction()) {
+    if (!applyReplayWave()) {
+      timer_->stop();
+
+      QMessageBox::critical(
+        this,
+        "Replay Error",
+        "The replay diverged from the recorded match.");
+
+      return;
+    }
+  }
+
   simulation_.advance(REFRESH_INTERVAL_MS);
 
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
+
   slotGrid_->refresh(simulation_.slotManager());
   hud_->refresh(simulation_.state());
+
   updateInteractivity();
 
   if (simulation_.over()) {
@@ -192,76 +291,126 @@ void MainWindow::onTick() {
 }
 
 void MainWindow::onSlotClicked(int slotIndex) {
-  if (simulation_.state().phase != WavePhase::Construction) {
-    return;  // towers stay fixed once combat starts (section 3.4)
+  if (replayMode_) {
+    return;
   }
 
-  // During Combat, tower structures must remain fixed.
-  UpgradeDialog dialog(slotIndex, simulation_.economy(), this);
+  if (simulation_.state().phase != WavePhase::Construction) {
+    return;
+  }
+
+  UpgradeDialog dialog(
+    slotIndex,
+    simulation_.economy(),
+    this);
+
   if (dialog.exec() != QDialog::Accepted) {
     return;
   }
 
   auto chosen = dialog.selectedCore();
+
   if (!chosen) {
     return;
   }
 
   if (!simulation_.purchaseCore(slotIndex, *chosen)) {
-    return;  // shouldn't happen: unaffordable options are disabled in dialog
+    return;
   }
+
+  PlayerDecision decision;
+  decision.wave = simulation_.state().current_wave;
+  decision.slot = slotIndex;
+  decision.core = *chosen;
+
+  replayData_.decisions.push_back(decision);
+
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
+
   slotGrid_->refresh(simulation_.slotManager());
   hud_->refresh(simulation_.state());
 }
 
 void MainWindow::onStartWave() {
+  if (replayMode_) {
+    return;
+  }
+
   simulation_.startWave();
   updateInteractivity();
 }
 
 void MainWindow::onHollowPurple() {
-  if (!simulation_.activateHollowPurple()) {
-    return;  // shouldn't happen: the button is disabled when it can't
+  if (replayMode_) {
+    return;
   }
-  if (hollowPurpleSound_->mediaStatus() == QMediaPlayer::InvalidMedia
-      || hollowPurpleSound_->mediaStatus() == QMediaPlayer::NoMedia) {
+
+  if (!simulation_.activateHollowPurple()) {
+    return;
+  }
+
+  if (hollowPurpleSound_->mediaStatus()
+    == QMediaPlayer::InvalidMedia
+    || hollowPurpleSound_->mediaStatus()
+    == QMediaPlayer::NoMedia) {
     qWarning("Hollow Purple sound can't be played (media status %d)",
       static_cast<int>(hollowPurpleSound_->mediaStatus()));
   }
-  hollowPurpleSound_->setPosition(0);  // always from the start
-  hollowPurpleSound_->play();          // lasts exactly the charge
+
+  hollowPurpleSound_->setPosition(0);
+  hollowPurpleSound_->play();
+
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
+
   hud_->refresh(simulation_.state());
   updateInteractivity();
 }
 
 void MainWindow::updateInteractivity() {
   const WorldState& state = simulation_.state();
-  bool inConstruction = state.phase == WavePhase::Construction;
-  startWaveButton_->setEnabled(inConstruction && !simulation_.over());
-  slotGrid_->setEnabled(inConstruction);
 
-  // Seconds left, rounded up, for the charge and cooldown labels.
+  const bool inConstruction =
+    state.phase == WavePhase::Construction;
+
+  const bool canInteract = inConstruction && !simulation_.over()
+    && !replayMode_;
+
+  startWaveButton_->setEnabled(canInteract);
+  slotGrid_->setEnabled(canInteract);
+
   auto secondsLeft = [](int ticks) {
     return (ticks + TICKS_PER_SECOND - 1) / TICKS_PER_SECOND;
   };
+
   QString label = QStringLiteral("虚式「茈」");
+
   if (state.hollow_purple_charge_left > 0) {
-    label += QString(" \u2014 charging (%1 s)")
-      .arg(secondsLeft(state.hollow_purple_charge_left));
+    label += QString(" — charging (%1 s)").arg(
+      secondsLeft(state.hollow_purple_charge_left));
   } else if (state.hollow_purple_cooldown_left > 0) {
-    label += QString(" \u2014 ready in %1 s")
-      .arg(secondsLeft(state.hollow_purple_cooldown_left));
+    label += QString(" — ready in %1 s").arg(
+      secondsLeft(state.hollow_purple_cooldown_left));
   } else {
-    label += QString(" \u2014 %1 credits").arg(HOLLOW_PURPLE_PRICE);
+    label += QString(" — %1 credits").arg(HOLLOW_PURPLE_PRICE);
   }
+
   hollowPurpleButton_->setText(label);
-  hollowPurpleButton_->setEnabled(simulation_.canActivateHollowPurple());
+
+  hollowPurpleButton_->setEnabled(!replayMode_
+    && simulation_.canActivateHollowPurple());
 }
 
 void MainWindow::handleMatchEnd() {
   timer_->stop();
+
+  if (!replayMode_) {
+    if (!saveReplay(replayOutputPath(), replayData_)) {
+      QMessageBox::warning(
+        this,
+        "Replay",
+        "Could not save the replay file.");
+    }
+  }
 
   if (challengeMode_) {
     ChallengeResult result;
@@ -286,8 +435,7 @@ void MainWindow::handleMatchEnd() {
 
   const bool won = simulation_.state().lives > 0;
 
-  QMessageBox::information(
-    this,
+  QMessageBox::information(this,
     won ? "Victory" : "Game Over",
     won ? "You survived all 20 waves!" : "The base has fallen.");
 
@@ -298,7 +446,10 @@ void MainWindow::handleMatchEnd() {
 
 void MainWindow::onShowChallengeLeaderboard() {
   ChallengeLeaderboard leaderboard(challengeScoresPath());
+
   leaderboard.load();
+
   ChallengeLeaderboardDialog dialog(leaderboard.results(), this);
+
   dialog.exec();
 }

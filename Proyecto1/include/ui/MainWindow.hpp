@@ -1,13 +1,16 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <QMainWindow>
-#include <QPushButton>
 #include <QMediaPlayer>
-#include <QTimer>
+#include <QPushButton>
 #include <QString>
+#include <QTimer>
 #include "HudPanel.hpp"
 #include "MapView.hpp"
+#include "Replay.hpp"
 #include "Simulation.hpp"
 #include "SlotGridView.hpp"
 
@@ -15,31 +18,38 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  explicit MainWindow(bool challengeMode, QWidget* parent = nullptr);
+  explicit MainWindow(bool challengeMode,
+      const ReplayData* replayData = nullptr, QWidget* parent = nullptr);
 
-  private Q_SLOTS:
-    void onTick();
-    /**
-     * @brief Opens the upgrade dialog for the clicked slot; on acceptance, 
-     * purchases and installs the chosen core.
-     */
-    void onSlotClicked(int slotIndex);
-    void onStartWave();
-    void onShowChallengeLeaderboard();
+ private Q_SLOTS:
+  void onTick();
 
-    /**
-     * @brief Buys the Hollow Purple special ability, if it can be bought
-     * right now (see Simulation::canActivateHollowPurple()).
-     */
-    void onHollowPurple();
+  /**
+   * @brief Opens the upgrade dialog for the clicked slot and installs the
+   * selected core when the purchase succeeds.
+   */
+  void onSlotClicked(int slotIndex);
+  void onStartWave();
+  void onShowChallengeLeaderboard();
+
+  /**
+   * @brief Activates Hollow Purple when the ability can be purchased.
+   */
+  void onHollowPurple();
 
  private:
-  // UI refresh rate, not the game's fixed tick
+  // UI refresh rate, not the game's fixed tick.
   static constexpr int REFRESH_INTERVAL_MS = 100;
 
   bool challengeMode_ = false;
+  bool replayMode_ = false;
+  ReplayData replayData_;
+  std::size_t replayDecisionIndex_ = 0;
+  std::uint32_t seed_ = 0;
   QString challengePlayer_;
+
   Simulation simulation_;
+
   HudPanel* hud_ = nullptr;
   MapView* mapView_ = nullptr;
   SlotGridView* slotGrid_ = nullptr;
@@ -50,16 +60,14 @@ class MainWindow : public QMainWindow {
   QPushButton* leaderboardButton_ = nullptr;
 
   /**
-   * @brief Enables construction-phase controls (the button and the slot
-   * grid) and disables them during combat, so towers stay fixed once a
-   * wave starts. Also updates the Hollow Purple button: enabled only when
-   * it can be bought, labeled with its price, charge or cooldown.
+   * @brief Enables construction controls and updates Hollow Purple state.
    */
   void updateInteractivity();
 
   /**
-   * @brief Shows a one-time Victory/Game Over message once the match
-   * ends, and stops the refresh timer.
+   * @brief Stops the timer and shows the final match result.
    */
   void handleMatchEnd();
+
+  bool applyReplayWave();
 };
