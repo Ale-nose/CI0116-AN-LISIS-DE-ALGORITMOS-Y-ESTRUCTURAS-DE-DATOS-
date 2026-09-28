@@ -14,6 +14,7 @@
  */
 struct CliArgs {
   bool headless = false;       ///< Run without a window (--headless).
+  bool challenge = false;      ///< Use fixed Challenge Mode settings.
   std::uint32_t seed = 0;      ///< Match seed (--seed).
   int waves = TOTAL_WAVES;     ///< Last wave to play (--waves).
   std::string core;            ///< Structure for every slot (--core).

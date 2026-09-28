@@ -3,18 +3,101 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QCoreApplication>
+#include <QDir>
+#include <QPushButton>
 #include "UpgradeDialog.hpp"
+#include "ChallengeMode.hpp"
+#include "ChallengeLeaderboard.hpp"
+#include "ChallengeLeaderboardDialog.hpp"
 
-MainWindow::MainWindow(QWidget* parent)
-  : QMainWindow(parent)
-  , simulation_(/*seed=*/12345, Config{}) {
+namespace {
+
+std::string challengeScoresPath() {
+  const QString path = QDir::cleanPath(
+    QCoreApplication::applicationDirPath()
+      + "/../../report/challenge_scores.csv");
+
+  return path.toStdString();
+}
+
+}  // namespace
+
+MainWindow::MainWindow(bool challengeMode, QWidget* parent)
+  : QMainWindow(parent),
+  challengeMode_(challengeMode),
+  simulation_(challengeMode ? CHALLENGE_SEED : 12345, Config{}) {
   // Initialize central widget: HUD on top, the map in the middle, and the
   // per-slot panels below.
   QWidget* central = new QWidget(this);
   QVBoxLayout* layout = new QVBoxLayout(central);
 
+  if (challengeMode_) {
+    bool accepted = false;
+
+    challengePlayer_ = QInputDialog::getText(
+      this,
+      "Challenge Mode",
+      "Player name:",
+      QLineEdit::Normal,
+      "",
+      &accepted);
+
+    if (!accepted) {
+      challengePlayer_ = "Player";
+    }
+
+    challengePlayer_ = challengePlayer_.trimmed();
+    challengePlayer_.replace(',', ' ');
+    challengePlayer_.replace('\n', ' ');
+    challengePlayer_.replace('\r', ' ');
+    challengePlayer_ = challengePlayer_.simplified();
+
+    if (challengePlayer_.isEmpty()) {
+      challengePlayer_ = "Player";
+    }
+  }
+
+  auto* topLayout = new QHBoxLayout;
+  topLayout->setContentsMargins(0, 0, 0, 0);
+  topLayout->setSpacing(8);
+
   hud_ = new HudPanel(central);
-  layout->addWidget(hud_);
+  hud_->setChallengeMode(challengeMode_);
+  topLayout->addWidget(hud_, 1);
+
+  leaderboardButton_ = new QPushButton("LEADERBOARD", central);
+  leaderboardButton_->setObjectName("leaderboardButton");
+  leaderboardButton_->setMinimumHeight(52);
+  leaderboardButton_->setVisible(challengeMode_);
+
+  leaderboardButton_->setStyleSheet(
+    "#leaderboardButton {"
+    "background-color: #49355c;"
+    "color: #e5c8ff;"
+    "border: 1px solid #795899;"
+    "border-radius: 7px;"
+    "padding: 8px 14px;"
+    "font-size: 13px;"
+    "font-weight: bold;"
+    "}"
+    "#leaderboardButton:hover {"
+    "background-color: #5b4172;"
+    "}"
+    "#leaderboardButton:pressed {"
+    "background-color: #382846;"
+    "}");
+
+  connect(
+    leaderboardButton_,
+    &QPushButton::clicked,
+    this,
+    &MainWindow::onShowChallengeLeaderboard);
+
+  topLayout->addWidget(leaderboardButton_);
+  layout->addLayout(topLayout);
 
   startWaveButton_ = new QPushButton("START WAVE", central);
 
@@ -39,8 +122,7 @@ MainWindow::MainWindow(QWidget* parent)
       "  background-color: #555555;"
       "  color: #888888;"
       "  border: 1px solid #444444;"
-      "}"
-  );
+      "}");
 
   connect(startWaveButton_, &QPushButton::clicked, this
     , &MainWindow::onStartWave);
@@ -121,8 +203,43 @@ void MainWindow::updateInteractivity() {
 
 void MainWindow::handleMatchEnd() {
   timer_->stop();
-  bool won = simulation_.economy().getLives() > 0;
 
-  QMessageBox::information(this, won ? "Victory" : "Game Over"
-    , won ? "You survived all 20 waves!" : "The base has fallen.");
+  if (challengeMode_) {
+    ChallengeResult result;
+
+    result.player = challengePlayer_.toStdString();
+    result.wavesCompleted = simulation_.stats().waves_completed;
+    result.livesRemaining = simulation_.state().lives;
+    result.creditsRemaining = simulation_.state().credits;
+
+    ChallengeLeaderboard leaderboard(challengeScoresPath());
+
+    leaderboard.load();
+    leaderboard.addResult(result);
+
+    if (!leaderboard.save()) {
+      QMessageBox::warning(
+        this,
+        "Challenge Mode",
+        "Could not save the challenge leaderboard.");
+    }
+  }
+
+  const bool won = simulation_.state().lives > 0;
+
+  QMessageBox::information(
+    this,
+    won ? "Victory" : "Game Over",
+    won ? "You survived all 20 waves!" : "The base has fallen.");
+
+  if (challengeMode_) {
+    onShowChallengeLeaderboard();
+  }
+}
+
+void MainWindow::onShowChallengeLeaderboard() {
+  ChallengeLeaderboard leaderboard(challengeScoresPath());
+  leaderboard.load();
+  ChallengeLeaderboardDialog dialog(leaderboard.results(), this);
+  dialog.exec();
 }

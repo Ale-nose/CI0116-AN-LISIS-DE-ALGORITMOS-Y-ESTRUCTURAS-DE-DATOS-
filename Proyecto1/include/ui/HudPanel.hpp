@@ -25,12 +25,14 @@ class HudPanel : public QFrame {
    * @param state Snapshot obtained from Simulation::state().
    */
   void refresh(const WorldState& state);
+  void setChallengeMode(bool enabled);
 
  private:
   QLabel* creditsLabel_;
   QLabel* livesLabel_;
   QLabel* waveLabel_;
   QLabel* compositionLabel_;
+  QLabel* modeLabel_;
 
   /**
    * @brief Formats a wave's composition as "N Swarm, N Wraith, etc".

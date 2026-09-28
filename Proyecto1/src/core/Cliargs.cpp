@@ -30,6 +30,8 @@ bool parseCliArgs(int argc, char** argv, CliArgs& outArgs) {
 
     if (arg == "--headless") {
       outArgs.headless = true;
+    } else if (arg == "--challenge") {
+      outArgs.challenge = true;
     } else if (arg == "--seed") {
       if (!needsValue("--seed", i, argc)) {
         return false;
