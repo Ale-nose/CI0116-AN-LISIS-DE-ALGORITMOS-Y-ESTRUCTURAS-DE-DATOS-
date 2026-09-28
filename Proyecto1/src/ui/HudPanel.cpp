@@ -23,11 +23,15 @@ HudPanel::HudPanel(QWidget* parent) : QFrame(parent) {
   livesLabel_ = new QLabel(this);
   waveLabel_ = new QLabel(this);
   compositionLabel_ = new QLabel(this);
+  modeLabel_ = new QLabel("CHALLENGE MODE", this);
 
   creditsLabel_->setObjectName("creditsLabel");
   livesLabel_->setObjectName("livesLabel");
   waveLabel_->setObjectName("waveLabel");
   compositionLabel_->setObjectName("compositionLabel");
+  modeLabel_->setObjectName("modeLabel");
+  modeLabel_->setAlignment(Qt::AlignCenter);
+  modeLabel_->hide();
 
   creditsLabel_->setAlignment(Qt::AlignCenter);
   livesLabel_->setAlignment(Qt::AlignCenter);
@@ -39,6 +43,7 @@ HudPanel::HudPanel(QWidget* parent) : QFrame(parent) {
   layout->setContentsMargins(12, 10, 12, 10);
   layout->setSpacing(10);
 
+  layout->addWidget(modeLabel_);
   layout->addWidget(creditsLabel_);
   layout->addWidget(livesLabel_);
   layout->addWidget(waveLabel_);
@@ -84,7 +89,20 @@ HudPanel::HudPanel(QWidget* parent) : QFrame(parent) {
     "border-radius: 7px;"
     "padding: 8px;"
     "font-size: 13px;"
+    "}"
+    "#modeLabel {"
+    "background-color: #49355c;"
+    "color: #e5c8ff;"
+    "border: 1px solid #795899;"
+    "border-radius: 7px;"
+    "padding: 8px;"
+    "font-size: 13px;"
+    "font-weight: bold;"
     "}");
+}
+
+void HudPanel::setChallengeMode(bool enabled) {
+  modeLabel_->setVisible(enabled);
 }
 
 void HudPanel::refresh(const WorldState& state) {

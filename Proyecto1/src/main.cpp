@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   }
 
   QApplication app(argc, argv);
-  MainWindow window;
+  MainWindow window(args.challenge);
   window.show();
   return app.exec();
 }
