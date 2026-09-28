@@ -1,8 +1,12 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "MainWindow.hpp"
+#include <QCoreApplication>
+#include <QDir>
 #include <QMessageBox>
+#include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
+#include "CombatConstants.hpp"
 #include "UpgradeDialog.hpp"
 
 MainWindow::MainWindow(QWidget* parent)
@@ -20,6 +24,26 @@ MainWindow::MainWindow(QWidget* parent)
   connect(startWaveButton_, &QPushButton::clicked, this
     , &MainWindow::onStartWave);
   layout->addWidget(startWaveButton_);
+
+  hollowPurpleButton_ = new QPushButton(central);
+  connect(hollowPurpleButton_, &QPushButton::clicked, this
+    , &MainWindow::onHollowPurple);
+  layout->addWidget(hollowPurpleButton_);
+
+  // Same assets folder MapView loads its images from. If the file is
+  // missing or can't be decoded, the effect just stays silent.
+  const QString assetsPath = QDir::cleanPath(
+    QCoreApplication::applicationDirPath() + "/../../assets");
+  // QMediaPlayer plays through GStreamer, which reaches WSL's sound server
+  // more reliably than QSoundEffect.
+  hollowPurpleSound_ = new QMediaPlayer(this);
+  connect(hollowPurpleSound_,
+    QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, [this] {
+      qWarning("Hollow Purple sound error: %s",
+        qPrintable(hollowPurpleSound_->errorString()));
+    });
+  hollowPurpleSound_->setMedia(
+    QUrl::fromLocalFile(assetsPath + "/sounds/hollow_purple.wav"));
 
   mapView_ = new MapView(central);
   mapView_->refresh(simulation_.state(), simulation_.slotManager());
@@ -88,10 +112,44 @@ void MainWindow::onStartWave() {
   updateInteractivity();
 }
 
+void MainWindow::onHollowPurple() {
+  if (!simulation_.activateHollowPurple()) {
+    return;  // shouldn't happen: the button is disabled when it can't
+  }
+  if (hollowPurpleSound_->mediaStatus() == QMediaPlayer::InvalidMedia
+      || hollowPurpleSound_->mediaStatus() == QMediaPlayer::NoMedia) {
+    qWarning("Hollow Purple sound can't be played (media status %d)",
+      static_cast<int>(hollowPurpleSound_->mediaStatus()));
+  }
+  hollowPurpleSound_->setPosition(0);  // always from the start
+  hollowPurpleSound_->play();          // lasts exactly the charge
+  mapView_->refresh(simulation_.state(), simulation_.slotManager());
+  hud_->refresh(simulation_.state());
+  updateInteractivity();
+}
+
 void MainWindow::updateInteractivity() {
-  bool inConstruction = simulation_.state().phase == WavePhase::Construction;
+  const WorldState& state = simulation_.state();
+  bool inConstruction = state.phase == WavePhase::Construction;
   startWaveButton_->setEnabled(inConstruction && !simulation_.over());
   slotGrid_->setEnabled(inConstruction);
+
+  // Seconds left, rounded up, for the charge and cooldown labels.
+  auto secondsLeft = [](int ticks) {
+    return (ticks + TICKS_PER_SECOND - 1) / TICKS_PER_SECOND;
+  };
+  QString label = QStringLiteral("虚式「茈」");
+  if (state.hollow_purple_charge_left > 0) {
+    label += QString(" \u2014 charging (%1 s)")
+      .arg(secondsLeft(state.hollow_purple_charge_left));
+  } else if (state.hollow_purple_cooldown_left > 0) {
+    label += QString(" \u2014 ready in %1 s")
+      .arg(secondsLeft(state.hollow_purple_cooldown_left));
+  } else {
+    label += QString(" \u2014 %1 credits").arg(HOLLOW_PURPLE_PRICE);
+  }
+  hollowPurpleButton_->setText(label);
+  hollowPurpleButton_->setEnabled(simulation_.canActivateHollowPurple());
 }
 
 void MainWindow::handleMatchEnd() {

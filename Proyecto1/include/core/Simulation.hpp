@@ -65,6 +65,8 @@ struct WorldState {
   int lives = STARTING_LIVES;
   WaveComposition next_wave_composition{};
   std::vector<EnemyViewState> enemies;
+  int hollow_purple_charge_left = 0;    ///< Ticks until it fires; 0: idle.
+  int hollow_purple_cooldown_left = 0;  ///< Ticks until it can be bought.
 };
 
 /**
@@ -150,6 +152,24 @@ class Simulation {
    * wave is already in combat.
    */
   void startWave();
+
+  /**
+   * @brief Whether the Hollow Purple special ability can be bought now:
+   * during combat, not already charging, off cooldown, and affordable.
+   * @return true if activateHollowPurple() would succeed.
+   */
+  bool canActivateHollowPurple() const;
+
+  /**
+   * @brief Buys the Hollow Purple special ability: charges
+   * HOLLOW_PURPLE_PRICE credits and starts a HOLLOW_PURPLE_CHARGE_TICKS
+   * charge; when it ends, every enemy on the map is erased without paying
+   * rewards. The towers then receive an erase for each enemy they were
+   * tracking, like any other removal.
+   * @return true if it was bought; false (nothing charged) if
+   * canActivateHollowPurple() is false.
+   */
+  bool activateHollowPurple();
 
   /**
    * @brief Whether the current wave is waiting in its construction phase
@@ -265,6 +285,15 @@ class Simulation {
    * @param id Enemy to remove; no-op if it is not on the map.
    */
   void removeEnemy(EnemyId id);
+
+  /**
+   * @brief Advances Hollow Purple's charge and cooldown by one tick, and
+   * erases every enemy on the map when the charge completes.
+   */
+  void tickHollowPurple();
+
+  int hollow_purple_charge_left_ = 0;    ///< Ticks until it fires; 0: idle.
+  int hollow_purple_cooldown_left_ = 0;  ///< Ticks until it can be bought.
 
   /**
    * @brief Closes the combat log for a wave: appends one record per

@@ -52,6 +52,21 @@ class Economy {
   }
 
   /**
+   * @brief Spends credits on something that isn't a core (e.g. the Hollow
+   * Purple special ability).
+   * @param amount Credits to spend.
+   * @return true if the player could afford it and the credits were
+   * deducted; false (nothing deducted) otherwise.
+   */
+  bool spend(int amount) {
+    if (!canAfford(amount)) {
+      return false;
+    }
+    credits_ -= amount;
+    return true;
+  }
+
+  /**
    * @brief Adds a reward in credits when an enemy is destroyed.
    * @param amount Bounty credits awarded for the killed enemy.
    */

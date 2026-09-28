@@ -1,6 +1,10 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 
 #include "MapView.hpp"
+
+#include <QFontMetrics>
+#include <algorithm>
+#include "CombatConstants.hpp"
 #include <QMouseEvent>
 #include <QPainter>
 #include <QCoreApplication>
@@ -141,6 +145,42 @@ void MapView::paintEvent(QPaintEvent* /*event*/) {
       spriteSize);
 
     painter.drawPixmap(spriteRect, sprite);
+  }
+
+  // DRAW HOLLOW PURPLE CHANT (on top of everything)
+  if (worldState_.hollow_purple_charge_left > 0) {
+    drawHollowPurpleChant(painter);
+  }
+}
+
+void MapView::drawHollowPurpleChant(QPainter& painter) {
+  static const std::array<QString, 4> kChant = {
+    QStringLiteral("〝九綱〟"),
+    QStringLiteral("〝偏光〟"),
+    QStringLiteral("〝烏と声明〟"),
+    QStringLiteral("〝表裏の間〟"),
+  };
+  const int lineCount = static_cast<int>(kChant.size());
+
+  // Line k appears once k/lineCount of the charge has elapsed.
+  const int elapsed =
+    HOLLOW_PURPLE_CHARGE_TICKS - worldState_.hollow_purple_charge_left;
+  const int shown = std::min(lineCount,
+    elapsed * lineCount / HOLLOW_PURPLE_CHARGE_TICKS + 1);
+
+  painter.fillRect(rect(), QColor(40, 0, 70, kChantVeilAlpha));
+
+  QFont font = painter.font();
+  font.setPointSize(kChantFontPointSize);
+  font.setBold(true);
+  painter.setFont(font);
+  painter.setPen(QColor(215, 175, 255));
+
+  const int lineHeight = QFontMetrics(font).height();
+  const int top = rect().center().y() - shown * lineHeight / 2;
+  for (int k = 0; k < shown; ++k) {
+    painter.drawText(QRect(0, top + k * lineHeight, width(), lineHeight),
+      Qt::AlignCenter, kChant[static_cast<std::size_t>(k)]);
   }
 }
 

@@ -40,6 +40,10 @@ void Simulation::tick() {
     updateRangeMembership(id, inserted.first->second);
   }
 
+  // After this tick's spawns, so an enemy born the tick it fires doesn't
+  // survive it.
+  tickHollowPurple();
+
   moveEnemies();
 
   auto results = slots_.tickAll();
@@ -206,6 +210,48 @@ bool Simulation::purchaseCore(int slotIndex, CoreType type) {
   return true;
 }
 
+bool Simulation::canActivateHollowPurple() const {
+  return !over()
+    && waves_.phase() == WavePhase::Combat
+    && hollow_purple_charge_left_ == 0
+    && hollow_purple_cooldown_left_ == 0
+    && economy_.canAfford(HOLLOW_PURPLE_PRICE);
+}
+
+bool Simulation::activateHollowPurple() {
+  if (!canActivateHollowPurple() || !economy_.spend(HOLLOW_PURPLE_PRICE)) {
+    return false;
+  }
+  hollow_purple_charge_left_ = HOLLOW_PURPLE_CHARGE_TICKS;
+  refreshWorldState();
+  return true;
+}
+
+void Simulation::tickHollowPurple() {
+  if (hollow_purple_cooldown_left_ > 0) {
+    --hollow_purple_cooldown_left_;
+  }
+  if (hollow_purple_charge_left_ == 0) {
+    return;
+  }
+  --hollow_purple_charge_left_;
+  if (hollow_purple_charge_left_ > 0) {
+    return;
+  }
+
+  // Fire: every enemy on the map disappears, with no reward. Collect the
+  // ids first, since removeEnemy() erases from the map being walked.
+  std::vector<EnemyId> everyone;
+  everyone.reserve(active_enemies_.size());
+  for (const auto& [id, tracked] : active_enemies_) {
+    everyone.push_back(id);
+  }
+  for (EnemyId id : everyone) {
+    removeEnemy(id);
+  }
+  hollow_purple_cooldown_left_ = HOLLOW_PURPLE_COOLDOWN_TICKS;
+}
+
 void Simulation::startWave() {
   if (waves_.phase() == WavePhase::Construction) {
     waves_.startCombat();
@@ -220,6 +266,8 @@ void Simulation::refreshWorldState() {
   world_state_.credits = economy_.getCredits();
   world_state_.lives = economy_.getLives();
   world_state_.next_wave_composition = waves_.composition();
+  world_state_.hollow_purple_charge_left = hollow_purple_charge_left_;
+  world_state_.hollow_purple_cooldown_left = hollow_purple_cooldown_left_;
   world_state_.enemies.clear();
 
   for (const auto& [id, tracked] : active_enemies_) {
