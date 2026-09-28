@@ -17,12 +17,13 @@ pasos; un AVL o una tabla hash disparan rápido porque cuestan menos.
 2. [Compilar](#compilar)
 3. [Ejecutar](#ejecutar)
 4. [Cómo se juega](#cómo-se-juega)
-5. [Modo sin ventana (headless)](#modo-sin-ventana-headless)
-6. [Bitácora de combate](#bitácora-de-combate)
-7. [Experimentos e informe](#experimentos-e-informe)
-8. [Estructura del repositorio](#estructura-del-repositorio)
-9. [Problemas comunes](#problemas-comunes)
-10. [Convenciones del equipo](#convenciones-del-equipo)
+5. [Repetición de partidas (replay)](#repetición-de-partidas-replay)
+6. [Modo sin ventana (headless)](#modo-sin-ventana-headless)
+7. [Bitácora de combate](#bitácora-de-combate)
+8. [Experimentos e informe](#experimentos-e-informe)
+9. [Estructura del repositorio](#estructura-del-repositorio)
+10. [Problemas comunes](#problemas-comunes)
+11. [Convenciones del equipo](#convenciones-del-equipo)
 
 ---
 
@@ -192,6 +193,43 @@ el resultado en `report/challenge_scores.csv` y muestra la tabla de
 posiciones, que también se puede abrir con el botón **LEADERBOARD**. El
 orden es por oleadas completadas, después vidas restantes y después
 créditos.
+
+---
+
+## Repetición de partidas (replay)
+
+Al terminar una partida que no sea un replay, el juego guarda automáticamente
+la semilla y las decisiones de compra/reemplazo de núcleos en:
+
+```text
+report/last_replay.csv
+```
+
+El archivo contiene la semilla de la partida y, para cada decisión registrada,
+la oleada, la ranura y el núcleo seleccionado. Durante la reproducción se crea
+una nueva simulación con esa misma semilla, se aplican las decisiones en el
+mismo orden y cada oleada se inicia automáticamente. La interacción manual con
+las ranuras y con **START WAVE** queda bloqueada mientras corre el replay.
+
+Desde `Proyecto1/src/`:
+
+```bash
+./bin/Overflow --replay ../report/last_replay.csv
+```
+
+También se puede ejecutar con:
+
+```bash
+make run ARGS="--replay ../report/last_replay.csv"
+```
+
+`--replay` no se puede combinar con `--headless` ni con `--challenge`. Cada
+nueva partida terminada sobrescribe `report/last_replay.csv`; si se quiere
+conservar una repetición, hay que copiar o renombrar ese archivo antes de jugar
+la siguiente partida.
+
+Actualmente la bitácora de replay registra las compras y reemplazos de núcleos.
+La activación de Hollow Purple no se guarda como una decisión de replay.
 
 ---
 
