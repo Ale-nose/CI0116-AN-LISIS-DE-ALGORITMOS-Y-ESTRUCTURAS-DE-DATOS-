@@ -12,7 +12,7 @@ EnemyStats getEnemyStats(EnemyCategory category) {
     case EnemyCategory::Hive:
       return {20, 60};
     case EnemyCategory::Decoy:
-      return {0, 0};
+      return {1, 0};
     case EnemyCategory::Colossus:
       return {800, 400};  // life raised from 400 to 800
     case EnemyCategory::kCount:
