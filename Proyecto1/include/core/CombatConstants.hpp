@@ -1,6 +1,8 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
+#include "Ticks.hpp"  // for TICKS_PER_SECOND
+
 /**
  * @file CombatConstants.hpp
  * @brief Enemy movement and tower combat balance knobs (sections 2.1,
@@ -24,3 +26,22 @@ constexpr int TOWER_RANGE_CELLS = 2;
  * @brief Life removed from an enemy by one effective tower shot.
  */
 constexpr int TOWER_DAMAGE = 40;
+
+/**
+ * @brief Credits the Hollow Purple special ability costs per use.
+ */
+constexpr int HOLLOW_PURPLE_PRICE = 100000;
+
+/**
+ * @brief Ticks between paying for Hollow Purple and the moment it erases
+ * every enemy on the map (18 seconds of game time). Matches the length of
+ * assets/sounds/hollow_purple.wav, which plays during the charge: change
+ * both together.
+ */
+constexpr int HOLLOW_PURPLE_CHARGE_TICKS = 18 * TICKS_PER_SECOND;
+
+/**
+ * @brief Ticks Hollow Purple needs after firing before it can be bought
+ * again (90 seconds of game time, about a third of a full match).
+ */
+constexpr int HOLLOW_PURPLE_COOLDOWN_TICKS = 90 * TICKS_PER_SECOND;

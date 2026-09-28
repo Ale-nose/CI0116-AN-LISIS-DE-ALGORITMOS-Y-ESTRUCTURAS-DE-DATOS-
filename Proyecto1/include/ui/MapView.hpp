@@ -1,6 +1,7 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #pragma once
 
+#include <QPainter>
 #include <QPixmap>
 #include <QWidget>
 #include <array>
@@ -24,6 +25,17 @@ Q_SIGNALS:
   void mousePressEvent(QMouseEvent* event) override;
 
  private:
+  /**
+   * @brief Draws the Hollow Purple chant over the map while it charges:
+   * the four lines appear one by one, evenly spread over the charge, on
+   * a translucent purple veil.
+   * @param painter Painter already drawing this widget.
+   */
+  void drawHollowPurpleChant(QPainter& painter);
+
+  static constexpr int kChantFontPointSize = 30;  ///< Chant text size.
+  static constexpr int kChantVeilAlpha = 150;     ///< Veil opacity 0..255.
+
   Grid grid_;
 
   QPixmap mapPixmap_;
