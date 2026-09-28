@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QMediaPlayer>
 #include <QTimer>
+#include <QString>
 #include "HudPanel.hpp"
 #include "MapView.hpp"
 #include "Simulation.hpp"
@@ -14,7 +15,7 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  explicit MainWindow(QWidget* parent = nullptr);
+  explicit MainWindow(bool challengeMode, QWidget* parent = nullptr);
 
   private Q_SLOTS:
     void onTick();
@@ -24,6 +25,7 @@ class MainWindow : public QMainWindow {
      */
     void onSlotClicked(int slotIndex);
     void onStartWave();
+    void onShowChallengeLeaderboard();
 
     /**
      * @brief Buys the Hollow Purple special ability, if it can be bought
@@ -35,6 +37,8 @@ class MainWindow : public QMainWindow {
   // UI refresh rate, not the game's fixed tick
   static constexpr int REFRESH_INTERVAL_MS = 100;
 
+  bool challengeMode_ = false;
+  QString challengePlayer_;
   Simulation simulation_;
   HudPanel* hud_ = nullptr;
   MapView* mapView_ = nullptr;
@@ -43,6 +47,7 @@ class MainWindow : public QMainWindow {
   QPushButton* hollowPurpleButton_ = nullptr;  ///< Special ability.
   QMediaPlayer* hollowPurpleSound_ = nullptr;  ///< Plays during its charge.
   QTimer* timer_ = nullptr;
+  QPushButton* leaderboardButton_ = nullptr;
 
   /**
    * @brief Enables construction-phase controls (the button and the slot

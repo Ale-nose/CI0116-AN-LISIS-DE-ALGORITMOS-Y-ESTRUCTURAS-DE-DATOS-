@@ -22,10 +22,10 @@ void Simulation::tick() {
     return;
   }
 
-  // Section 3.4 — the construction phase has no time limit and nothing
-  // happens in it: the clock only runs once startWave() begins combat.
-  // Without this, an empty construction phase looks like a finished wave
-  // (nothing left to spawn, no enemies alive) and gets skipped.
+  // the construction phase has no time limit and nothing happens in it: the
+  // clock only runs once startWave() begins combat. Without this, an empty
+  // construction phase looks like a finished wave (nothing left to spawn,
+  // no enemies alive) and gets skipped.
   if (waves_.phase() == WavePhase::Construction) {
     return;
   }
@@ -204,9 +204,12 @@ void Simulation::installCoreEverywhere(CoreType type) {
 
 bool Simulation::purchaseCore(int slotIndex, CoreType type) {
   if (!economy_.buyCore(type)) {
-    return false;  // can't afford it — nothing charged, nothing installed
+    return false;
   }
+
   slots_.installCore(slotIndex, type, config_.hashMode);
+  refreshWorldState();
+
   return true;
 }
 
@@ -255,6 +258,7 @@ void Simulation::tickHollowPurple() {
 void Simulation::startWave() {
   if (waves_.phase() == WavePhase::Construction) {
     waves_.startCombat();
+    refreshWorldState();
   }
 }
 
