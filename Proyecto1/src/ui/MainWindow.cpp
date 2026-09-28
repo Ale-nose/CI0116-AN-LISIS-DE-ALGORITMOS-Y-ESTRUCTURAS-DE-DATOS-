@@ -17,6 +17,31 @@ MainWindow::MainWindow(QWidget* parent)
   layout->addWidget(hud_);
 
   startWaveButton_ = new QPushButton("START WAVE", central);
+
+  // Button style
+  startWaveButton_->setStyleSheet(
+      "QPushButton {"
+      "  background-color: #c62828;"
+      "  color: white;"
+      "  font-weight: bold;"
+      "  font-size: 14px;"
+      "  border: 2px solid #8e0000;"
+      "  border-radius: 5px;"
+      "  padding: 8px 16px;"
+      "}"
+      "QPushButton:hover {"
+      "  background-color: #e53935;"
+      "}"
+      "QPushButton:pressed {"
+      "  background-color: #b71c1c;"
+      "}"
+      "QPushButton:disabled {"
+      "  background-color: #555555;"
+      "  color: #888888;"
+      "  border: 1px solid #444444;"
+      "}"
+  );
+
   connect(startWaveButton_, &QPushButton::clicked, this
     , &MainWindow::onStartWave);
   layout->addWidget(startWaveButton_);
