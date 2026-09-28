@@ -32,6 +32,11 @@ bool parseCliArgs(int argc, char** argv, CliArgs& outArgs) {
       outArgs.headless = true;
     } else if (arg == "--challenge") {
       outArgs.challenge = true;
+    } else if (arg == "--replay") {
+      if (!needsValue("--replay", i, argc)) {
+        return false;
+      }
+      outArgs.replayPath = argv[++i];
     } else if (arg == "--seed") {
       if (!needsValue("--seed", i, argc)) {
         return false;

@@ -23,6 +23,7 @@ struct CliArgs {
   std::string only;        ///< Only category to spawn; empty: all (--only).
   std::string bucketsOut;  ///< Bucket log path; empty: none (--buckets-out).
   bool ignoreDefeat = false;   ///< Keep playing at 0 lives (--ignore-defeat).
+  std::string replayPath;
 };
 
 /**
