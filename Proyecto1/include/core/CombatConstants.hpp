@@ -30,7 +30,7 @@ constexpr int TOWER_DAMAGE = 40;
 /**
  * @brief Credits the Hollow Purple special ability costs per use.
  */
-constexpr int HOLLOW_PURPLE_PRICE = 100000;
+constexpr int HOLLOW_PURPLE_PRICE = 50000;
 
 /**
  * @brief Ticks between paying for Hollow Purple and the moment it erases
