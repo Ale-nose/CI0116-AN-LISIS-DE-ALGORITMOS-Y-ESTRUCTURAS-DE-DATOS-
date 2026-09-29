@@ -8,13 +8,14 @@
 /**
  * @brief Section 4.2 — parsed command line.
  *
- * Contract: overflow --headless --seed N --waves M --core <nombre>
+ * Contract: overflow --headless --seed N --waves M --core <name>
  * --out resultados.csv. Extra options for the report experiments
- * (Topic 7): --hash, --only, --buckets-out and --ignore-defeat.
+ * (Topic 7): --hash, --only, --buckets-out and --ignore-defeat. Windowed
+ * modes: --challenge (fixed-seed Challenge Mode) and --replay <file>.
  */
 struct CliArgs {
   bool headless = false;       ///< Run without a window (--headless).
-  bool challenge = false;      ///< Use fixed Challenge Mode settings.
+  bool challenge = false;      ///< Challenge Mode (--challenge).
   std::uint32_t seed = 0;      ///< Match seed (--seed).
   int waves = TOTAL_WAVES;     ///< Last wave to play (--waves).
   std::string core;            ///< Structure for every slot (--core).
@@ -23,7 +24,7 @@ struct CliArgs {
   std::string only;        ///< Only category to spawn; empty: all (--only).
   std::string bucketsOut;  ///< Bucket log path; empty: none (--buckets-out).
   bool ignoreDefeat = false;   ///< Keep playing at 0 lives (--ignore-defeat).
-  std::string replayPath;
+  std::string replayPath;  ///< Replay to play; empty: none (--replay).
 };
 
 /**

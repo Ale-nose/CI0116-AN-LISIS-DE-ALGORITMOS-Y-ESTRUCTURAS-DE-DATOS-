@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QTableWidget>
 #include <QVBoxLayout>
+#include <vector>
 
 ChallengeLeaderboardDialog::ChallengeLeaderboardDialog(
     const std::vector<ChallengeResult>& results,

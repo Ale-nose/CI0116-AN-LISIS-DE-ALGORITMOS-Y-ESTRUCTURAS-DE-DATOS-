@@ -68,7 +68,13 @@ class BstRegistry : public ITargetRegistry {
   /// @brief Number of stored entries. Costs 0 steps.
   size_t size() const override;
 
-  const StepCounter& stepBreakdown() const override { return counter_; }
+  /**
+   * @brief Cumulative steps per category since the registry was built.
+   * @return The registry's StepCounter.
+   */
+  const StepCounter& stepBreakdown() const override {
+    return counter_;
+  }
 
   /**
    * @brief Report question 6 — current tree height. Diagnostic only,

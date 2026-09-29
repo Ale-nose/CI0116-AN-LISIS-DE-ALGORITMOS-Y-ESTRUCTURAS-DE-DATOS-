@@ -1,7 +1,8 @@
 // Copyright 2026 Ashley Solano, Alejandro Cubero y Kevin Velásquez
 #include "Ticks.hpp"
 
-Ticks::Ticks(std::uint32_t seed) : rng_(seed) {}
+Ticks::Ticks(std::uint32_t seed) : rng_(seed) {
+}
 
 void Ticks::advance(int elapsed_ms) {
   accumulator_ms_ += elapsed_ms;
@@ -12,7 +13,8 @@ void Ticks::advance(int elapsed_ms) {
     accumulator_ms_ -= MS_PER_TICK;
     ++ticks_run;
   }
-  // si sobró acumulador tras el tope, se descarta ese exceso de este
+  // Time left over (below one tick, or past the catch-up cap) stays in the
+  // accumulator and is used on the next call.
 }
 
 void Ticks::tick() {

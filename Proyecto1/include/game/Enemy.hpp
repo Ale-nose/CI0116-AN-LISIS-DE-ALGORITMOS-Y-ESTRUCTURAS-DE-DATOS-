@@ -17,8 +17,8 @@ constexpr int DECOY_LIFETIME_S = 15;
  * upon creation.
  */
 struct EnemyStats {
-  int life;
-  int reward;
+  int life;    ///< Starting life points.
+  int reward;  ///< Credits paid to the tower that kills it.
 };
 
 /**
@@ -29,11 +29,18 @@ struct EnemyStats {
  */
 inline EnemyStats getEnemyStats(EnemyCategory category);
 
+/**
+ * @brief One enemy on the map: its category, life, reward and how far it
+ * still is from the base.
+ */
 class Enemy {
  public:
   /**
-   * @brief Constructs an Enemy instance initialized with stats based on its 
+   * @brief Constructs an Enemy instance initialized with stats based on its
    * category.
+   * @param id Unique enemy identifier.
+   * @param category Decides its life, reward and behavior.
+   * @param initialDistance Route cells between the entrance and the base.
    */
   Enemy(EnemyId id, EnemyCategory category, int initialDistance);
 
@@ -122,9 +129,9 @@ class Enemy {
   }
 
  private:
-  EnemyId id_;
-  EnemyCategory category_;
-  int life_;
+  EnemyId id_;              ///< Unique identifier.
+  EnemyCategory category_;  ///< Swarm, Wraith, Hive, Decoy or Colossus.
+  int life_;                ///< Life points left.
   int reward_;           ///< Credit payout awarded upon defeat.
   int distanceToBase_;   ///< Distance steps remaining to reach the base.
   int lifetimeTicks_;    ///< Accumulated active ticks

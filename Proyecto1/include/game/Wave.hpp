@@ -10,9 +10,21 @@
 #include "Enemy.hpp"
 #include "EnemyCategory.hpp"
 
+/**
+ * @brief Waves in a full match; surviving all of them wins.
+ */
 constexpr int TOTAL_WAVES = 20;
-constexpr int WAVE_BASE = 20;           // enemies in wave 1
-constexpr double WAVE_FACTOR = 1.3;     // growth per wave: base * factor^(w-1)
+
+/**
+ * @brief Enemies in wave 1.
+ */
+constexpr int WAVE_BASE = 20;
+
+/**
+ * @brief Growth per wave: wave w has WAVE_BASE * WAVE_FACTOR^(w-1) enemies.
+ */
+constexpr double WAVE_FACTOR = 1.3;
+
 /**
  * @brief Ticks between spawns during combat, for waves small enough to
  * finish spawning within WAVE_MAX_SPAWN_TICKS at this pace.

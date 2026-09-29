@@ -2,10 +2,21 @@
 #pragma once
 
 /**
- * @brief Economic settings and initial values for the game.
+ * @brief Credits the player starts the match with.
  */
 constexpr int STARTING_CREDITS = 300;
+
+/**
+ * @brief Lives the player starts the match with.
+ */
 constexpr int STARTING_LIVES = 20;
-constexpr int LEAK_PENALTY = 1;  // lives lost per enemy that reaches the base
-// applied once per wave, on unspent credits
+
+/**
+ * @brief Lives lost per enemy that reaches the base.
+ */
+constexpr int LEAK_PENALTY = 1;
+
+/**
+ * @brief Interest applied once per wave on unspent credits, in percent.
+ */
 constexpr int INTEREST_PERCENT = 5;

@@ -21,6 +21,7 @@ enum class CoreType {
 /**
  * @brief All 8 core types, in a fixed order. Useful for iterating over
  * every available structure (e.g. the upgrade dialog, section 5.3).
+ * @return The 8 core types.
  */
 inline const std::array<CoreType, 8>& allCoreTypes() {
   static constexpr std::array<CoreType, 8> kTypes = {
@@ -36,20 +37,20 @@ inline const std::array<CoreType, 8>& allCoreTypes() {
   return kTypes;
 }
 
-constexpr int PRICE_LINKED_LIST = 0;
-constexpr int PRICE_SORTED_LIST = 60;
-constexpr int PRICE_DYNAMIC_ARRAY = 80;
-constexpr int PRICE_SORTED_ARRAY = 150;
-constexpr int PRICE_BST = 220;
-constexpr int PRICE_AVL = 400;
-constexpr int PRICE_MIN_HEAP = 260;
+constexpr int PRICE_LINKED_LIST = 0;      ///< Section 3.1: starting core.
+constexpr int PRICE_SORTED_LIST = 60;     ///< Section 3.1 price.
+constexpr int PRICE_DYNAMIC_ARRAY = 80;   ///< Section 3.1 price.
+constexpr int PRICE_SORTED_ARRAY = 150;   ///< Section 3.1 price.
+constexpr int PRICE_BST = 220;            ///< Section 3.1 price.
+constexpr int PRICE_AVL = 400;            ///< Section 3.1 price.
+constexpr int PRICE_MIN_HEAP = 260;       ///< Section 3.1 price.
 
-/*
-Raised from the original 500 to 800 (double the AVL price, the next most 
-expensive structure). The hash table no longer needs a second, paired tower to 
-target on its own, so its price should reflect that it now offers, alone, what 
-used to take two towers to achieve.
-*/
+/**
+ * @brief Hash table price. Raised from the original 500 to 800 (double the
+ * AVL price, the next most expensive structure): the hash table no longer
+ * needs a second, paired tower to target on its own, so its price
+ * reflects that it now offers, alone, what used to take two towers.
+ */
 constexpr int PRICE_HASH_TABLE = 800;
 
 

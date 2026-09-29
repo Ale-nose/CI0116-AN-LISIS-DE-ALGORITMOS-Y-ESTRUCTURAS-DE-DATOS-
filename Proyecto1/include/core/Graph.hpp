@@ -7,27 +7,48 @@
 #include <functional>
 #include "Grid.hpp"
 
+/**
+ * @brief A cell position: (x, y) = (column, row).
+ */
 using Point = std::pair<int, int>;
 
-// Hash for Point so it can be used as an unordered_map key.
+/**
+ * @brief Hash for Point, so it can be used as an unordered_map key.
+ */
 struct PointHash {
+  /**
+   * @brief Hashes a position.
+   * @param p Position to hash.
+   * @return Its hash value.
+   */
   size_t operator()(const Point& p) const {
     return std::hash<int>()(p.first) * 31 + std::hash<int>()(p.second);
   }
 };
 
-// A cell an enemy can actually stand on.
+/**
+ * @brief Whether an enemy can stand on a cell.
+ * @param t Cell content.
+ * @return true for path, entrance and exit cells.
+ */
 inline bool isWalkable(CellType t) {
   return t == CellType::Path || t == CellType::Entrance || t == CellType::Exit;
 }
 
-// nodes: every walkable cell. adjacency: walkable neighbors per cell.
+/**
+ * @brief The walkable part of the map as a graph.
+ */
 struct Graph {
-  std::vector<Point> nodes;
+  std::vector<Point> nodes;  ///< Every walkable cell.
+  /// Walkable neighbors (up, down, left, right) of each node.
   std::unordered_map<Point, std::vector<Point>, PointHash> adjacency;
 };
 
-// Builds the graph once from the grid's current layout.
+/**
+ * @brief Builds the graph once from the grid's current layout.
+ * @param grid The map.
+ * @return Its walkable cells and their walkable neighbors.
+ */
 inline Graph buildGraphFromGrid(const Grid& grid) {
   Graph graph;
 

@@ -152,7 +152,7 @@ class Tower {
   TowerWaveStats takeWaveStats();
 
  private:
-  static constexpr std::uint64_t kNanosecondsPerMicrosecond = 1000;
+  static constexpr std::uint64_t kNanosecondsPerMicrosecond = 1000;  ///< Unit.
 
   /**
    * @brief Adds the per-category steps spent between two snapshots of

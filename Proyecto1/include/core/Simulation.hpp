@@ -46,25 +46,28 @@ struct Config {
   bool ignoreDefeat = false;
 };
 
+/**
+ * @brief Where an enemy is, for the map to draw it.
+ */
 struct EnemyViewState {
-  EnemyId id;
-  EnemyCategory category;
-  int gridX;
-  int gridY;
+  EnemyId id;              ///< Enemy identifier.
+  EnemyCategory category;  ///< Decides its sprite.
+  int gridX;               ///< Map column.
+  int gridY;               ///< Map row.
 };
 
 /**
- * @brief Read-only snapshot of the game state for the UI
+ * @brief Read-only snapshot of the game state for the UI.
  */
 struct WorldState {
   std::uint64_t ticks_elapsed = 0;  ///< Total ticks executed.
-  bool game_over = false;
+  bool game_over = false;           ///< Whether the match has ended.
   WavePhase phase = WavePhase::Construction;  ///< Construction or Combat.
   int current_wave = 1;  ///< 1-based wave currently being previewed/fought.
-  int credits = STARTING_CREDITS;
-  int lives = STARTING_LIVES;
-  WaveComposition next_wave_composition{};
-  std::vector<EnemyViewState> enemies;
+  int credits = STARTING_CREDITS;  ///< Credits available.
+  int lives = STARTING_LIVES;      ///< Lives left.
+  WaveComposition next_wave_composition{};  ///< Enemies per category.
+  std::vector<EnemyViewState> enemies;      ///< Enemies on the map.
   int hollow_purple_charge_left = 0;    ///< Ticks until it fires; 0: idle.
   int hollow_purple_cooldown_left = 0;  ///< Ticks until it can be bought.
 };
@@ -80,6 +83,11 @@ struct Stats {
   int waves_completed = 0;          ///< Waves fully finished spawning.
 };
 
+/**
+ * @brief Section 4.2 — the whole match: waves, enemies, towers, economy
+ * and the combat log. Knows nothing about the UI, which only reads
+ * state(); runs the same with or without a window.
+ */
 class Simulation {
  public:
   /**

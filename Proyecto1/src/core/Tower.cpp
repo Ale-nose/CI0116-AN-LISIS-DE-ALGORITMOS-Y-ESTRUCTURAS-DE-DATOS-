@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <utility>
+#include <deque>
 
 Tower::Tower(std::unique_ptr<ITargetRegistry> registry)
   : registry_(std::move(registry)) {

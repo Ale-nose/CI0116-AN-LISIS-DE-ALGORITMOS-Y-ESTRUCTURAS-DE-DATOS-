@@ -5,9 +5,17 @@
 #include "CorePrices.hpp"
 #include "Wave.hpp"
 
+/**
+ * @brief Section 3.4 — the player's credits and lives, and the rules to
+ * spend and earn them.
+ */
 class Economy {
  public:
-  Economy() : credits_(STARTING_CREDITS), lives_(STARTING_LIVES) {}
+  /**
+   * @brief Starts with STARTING_CREDITS credits and STARTING_LIVES lives.
+   */
+  Economy() : credits_(STARTING_CREDITS), lives_(STARTING_LIVES) {
+  }
 
   /**
    * @brief Retrieves the current amount of available credits.
@@ -121,6 +129,6 @@ class Economy {
   }
 
  private:
-  int credits_;
-  int lives_;
+  int credits_;  ///< Credits available to spend.
+  int lives_;    ///< Lives left; the match is lost at 0.
 };
